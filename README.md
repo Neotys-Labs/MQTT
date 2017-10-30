@@ -14,7 +14,7 @@ Read [Testing Applications using MQTT over WebSocket](MQTT_websocket_documentati
 * Download the custom Advanced Actions and the Data Format Extension binaries from the [latest release](https://github.com/Neotys-Labs/MQTT/releases/latest)
 * Download the file 'MQTT-framework-parameters.xml' from the [repository](MQTT-framework-parameters.xml)
 
-## Advanced Actions Parameters
+## Labs version vs NeoLoad version
 
 * Read the documention on the Advanced Actions bundeled with NeoLoad: [MQTT documentation](https://www.neotys.com/documents/doc/neoload/latest/en/html/#23668.htm)
 * The Labs version differs from the NeoLoad version on these parameters:
