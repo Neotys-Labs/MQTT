@@ -1,8 +1,8 @@
-# <span style="color:red">Work in progress - not usable</span>
+# <span style="color:red">WARNING, Work in progress - Not Usable</span>
 
 # MQTT 
 
-This projects groups the assets that can be used to load test MQTT with [NeoLoad](https://www.neotys.com/neoload/overview).
+This projects groups the assets that can be used to load test MQTT brokers with [NeoLoad](https://www.neotys.com/neoload/overview).
 
 * **the MQTT Advanced Actions** - The actions required for MQTT over http are bundled in NeoLoad. This Labs version also supports MQTT over WebSocket.
 
