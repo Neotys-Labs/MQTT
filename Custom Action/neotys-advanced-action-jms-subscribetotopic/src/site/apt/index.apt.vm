@@ -1,0 +1,72 @@
+~~ For more information about apt, please see http://maven.apache.org/doxia/references/apt-format.html
+Name
+
+	Topic - Subscribe
+
+Overview
+	
+	Subscribes to a topic.
+	
+Details
+
+	* <<Version>>: ${project.version}
+	
+	* <<Type>>: Advanced Action
+
+	* <<Maturity>>: Experimental
+	
+	* <<NeoLoad>>: 5.1+ (Ultimate, Enterprise or Professional Edition w/ Integration & Customization option required)
+	
+	* <<NeoSense>>: Compatible
+	
+	* <<Author>>: Neotys
+	
+	* <<License>>: {{{http://www.neotys.com/documents/legal/bsd-neotys.txt}BSD Simplified}}.
+	
+	* <<Requirements>>: None
+	
+	* <<Bundled in NeoLoad>>: No
+	
+	[]
+
+* Parameters
+	
+	* <<topic>>: (required) The topic name.
+	
+	* <<jmsSelector>>: (optional) The message selector to only subscribe to messages respecting the selector condition.
+	
+	* <<includeLocal>>: (optional) If set to true, messages published by same connection are included.
+	
+	[]
+	
+* Status Codes
+
+	* <<NL-SUBSCRIBETOTOPIC-ACTION-01>>: There was an issue parsing the parameters.
+	
+	* <<NL-SUBSCRIBETOTOPIC-ACTION-02>>: There was an error while subscribing to the topic.
+	
+	[]
+
+* Examples
+
+	* An example of topic subscription.
+		
+		* <<topic>>: myTopicName
+		
+		* <<jmsSelector>>: my_property='my_value'
+		
+		* <<includeLocal>>: false
+				
+		[]
+	
+	[]
+	
+ChangeLog
+
+	* 1.0.0
+
+		* Initial release
+		
+		[]
+	[]
+	

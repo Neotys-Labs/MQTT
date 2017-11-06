@@ -1,0 +1,63 @@
+~~ For more information about apt, please see http://maven.apache.org/doxia/references/apt-format.html
+Name
+
+	Disconnect
+
+Overview
+	
+	Disconnects from a topic or a queue.
+	
+Details
+
+	* <<Version>>: ${project.version}
+	
+	* <<Type>>: Advanced Action
+
+	* <<Maturity>>: Experimental
+	
+	* <<NeoLoad>>: 5.1+ (Ultimate, Enterprise or Professional Edition w/ Integration & Customization option required)
+	
+	* <<NeoSense>>: Compatible
+	
+	* <<Author>>: Neotys
+	
+	* <<License>>: {{{http://www.neotys.com/documents/legal/bsd-neotys.txt}BSD Simplified}}.
+	
+	* <<Requirements>>: None
+	
+	* <<Bundled in NeoLoad>>: No
+	
+	[]
+
+* Parameters
+	
+	* <<destination>>: (required) The name of the (topic or queue) destination.
+	
+	[]
+	
+* Status Codes
+
+	* <<NL-DISCONNECT-ACTION-01>>: There was an issue parsing the parameters.
+	
+	* <<NL-DISCONNECT-ACTION-02>>: There was an error while disconnecting from the destination.
+	
+	[]
+
+* Examples
+
+	* An example of disconnecting from a queue.
+		
+		* <<destination>>: myQueueName
+				
+		[]
+	[]
+	
+ChangeLog
+
+	* 1.0.0
+
+		* Initial release
+		
+		[]
+	[]
+	

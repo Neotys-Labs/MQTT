@@ -1,0 +1,11 @@
+<project>
+  <poweredBy>
+     <logo name="Neotys" href="http://www.neotys.com/"
+          img="images/neotys.png"/>
+  </poweredBy>
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-stylus-skin</artifactId>
+    <version>1.5</version>
+  </skin>
+</project>
