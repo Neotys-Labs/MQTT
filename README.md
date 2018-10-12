@@ -2,7 +2,7 @@
 
 This projects groups the assets that can be used to load test MQTT brokers with [NeoLoad](https://www.neotys.com/neoload/overview).
 
-* **the MQTT Advanced Actions** - The actions required for MQTT over TCP are bundled in NeoLoad. This Labs version also supports MQTT over WebSocket.
+* **the MQTT Advanced Actions** - The actions required for MQTT over TCP are bundled in NeoLoad. This Labs version also supports MQTT over WebSocket. Supported protocols: 'tcp,'ws','tls'.
 
 * **MQTT over websocket** also requires the MQTT Data Format Extension and a MQTT Framework parameters file.  
 Read [Testing Applications using MQTT over WebSocket](MQTT_websocket_documentation.pdf)
@@ -14,6 +14,7 @@ Read [Testing Applications using MQTT over WebSocket](MQTT_websocket_documentati
 
 ## Labs version vs NeoLoad version
 
+* NeoLoad version supports 'tcp' protocol when the Labs version supports 'tcp,'ws','tls'
 * Read the documention on the Advanced Actions bundeled with NeoLoad: [MQTT documentation](https://www.neotys.com/documents/doc/neoload/latest/en/html/#23668.htm)
 
 
