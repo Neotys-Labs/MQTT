@@ -27,35 +27,24 @@
  */
 package com.neotys.action.mqtt.publish;
 
-import java.net.URL;
+import com.neotys.action.argument.Arguments;
+import com.neotys.action.argument.Option;
+import com.neotys.action.mqtt.util.MqttAction;
+import com.neotys.extensions.action.ActionParameter;
+import com.neotys.extensions.action.engine.ActionEngine;
+
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-import javax.swing.*;
-
-import com.google.common.base.Optional;
-import com.neotys.action.argument.Arguments;
-import com.neotys.action.argument.Option;
-import com.neotys.extensions.action.Action;
-import com.neotys.extensions.action.ActionParameter;
-import com.neotys.extensions.action.engine.ActionEngine;
-
 /**
  * Publish a message on a topic
  */
-public class PublishAction implements Action {
-	private static final String BUNDLE_NAME = "com.neotys.action.mqtt.publish.bundle";
-    private static final String DISPLAY_NAME = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("displayName");
-    private static final String DISPLAY_PATH = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("displayPath");
-	private static final ImageIcon ICON;
+public class PublishAction extends MqttAction {
+    private static final String DISPLAY_NAME = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("publishName");
 
-	static {
-		final URL iconURL = PublishAction.class.getResource("message.png");
-		ICON = iconURL != null ? new ImageIcon(iconURL) : null;
-	}
-	
 	@Override
 	public List<ActionParameter> getDefaultActionParameters() {
 		final ArrayList<ActionParameter> parameters = new ArrayList<>();
@@ -70,11 +59,6 @@ public class PublishAction implements Action {
 	}
 
 	@Override
-	public boolean getDefaultIsHit(){
-		return true;
-	}
-
-	@Override
 	public String getDescription() {
 		return "Publish a message to an MQTT broker.\n\n" + Arguments.getArgumentDescriptions(PublishOption.values());
 	}
@@ -85,11 +69,6 @@ public class PublishAction implements Action {
         return DISPLAY_NAME;
     }
 
-    public String getDisplayPath()
-    {
-        return DISPLAY_PATH;
-    }
-
 	@Override
 	public Class<? extends ActionEngine> getEngineClass() {
 		return PublishActionEngine.class;
@@ -97,17 +76,7 @@ public class PublishAction implements Action {
 
 	@Override
 	public Icon getIcon() {
-		return ICON;
-	}
-
-	@Override
-	public Optional<String> getMaximumNeoLoadVersion() {
-		return Optional.absent();
-	}
-
-	@Override
-	public Optional<String> getMinimumNeoLoadVersion() {
-		 return Optional.of("5.1");
+		return MESSAGE_ICON;
 	}
 
 	@Override

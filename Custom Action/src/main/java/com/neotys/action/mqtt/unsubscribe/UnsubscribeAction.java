@@ -27,31 +27,20 @@
  */
 package com.neotys.action.mqtt.unsubscribe;
 
-import java.net.URL;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.ResourceBundle;
-
-import javax.swing.*;
-
-import com.google.common.base.Optional;
 import com.neotys.action.argument.Arguments;
 import com.neotys.action.argument.Option;
-import com.neotys.extensions.action.Action;
+import com.neotys.action.mqtt.util.MqttAction;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
 
-public class UnsubscribeAction implements Action {
-	private static final String BUNDLE_NAME = "com.neotys.action.mqtt.unsubscribe.bundle";
-	private static final String DISPLAY_NAME = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("displayName");
-	private static final String DISPLAY_PATH = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("displayPath");
-	private static final ImageIcon ICON;
+import javax.swing.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
-	static {
-		final URL iconURL = UnsubscribeAction.class.getResource("message.png");
-		ICON = iconURL != null ? new ImageIcon(iconURL) : null;
-	}
+public class UnsubscribeAction extends MqttAction {
+	private static final String DISPLAY_NAME = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("unsubscribeName");
 
 	@Override
 	public List<ActionParameter> getDefaultActionParameters() {
@@ -67,11 +56,6 @@ public class UnsubscribeAction implements Action {
 	}
 
 	@Override
-	public boolean getDefaultIsHit(){
-		return true;
-	}
-
-	@Override
 	public String getDescription() {
 		return "Unsubscribe from a topic on an MQTT broker.\n\n" + Arguments.getArgumentDescriptions(UnsubscribeOption.values());
 	}
@@ -82,11 +66,6 @@ public class UnsubscribeAction implements Action {
 		return DISPLAY_NAME;
 	}
 
-	public String getDisplayPath()
-	{
-		return DISPLAY_PATH;
-	}
-
 	@Override
 	public Class<? extends ActionEngine> getEngineClass() {
 		return UnsubscribeActionEngine.class;
@@ -94,17 +73,7 @@ public class UnsubscribeAction implements Action {
 
 	@Override
 	public Icon getIcon() {
-		return ICON;
-	}
-
-	@Override
-	public Optional<String> getMaximumNeoLoadVersion() {
-		return Optional.absent();
-	}
-
-	@Override
-	public Optional<String> getMinimumNeoLoadVersion() {
-		return Optional.of("5.1");
+		return MESSAGE_ICON;
 	}
 
 	@Override

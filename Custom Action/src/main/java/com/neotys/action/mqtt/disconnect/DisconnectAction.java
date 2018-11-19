@@ -27,34 +27,23 @@
  */
 package com.neotys.action.mqtt.disconnect;
 
-import java.net.URL;
+import com.neotys.action.argument.Arguments;
+import com.neotys.action.argument.Option;
+import com.neotys.action.mqtt.util.MqttAction;
+import com.neotys.extensions.action.ActionParameter;
+import com.neotys.extensions.action.engine.ActionEngine;
+
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-import javax.swing.*;
-
-import com.google.common.base.Optional;
-import com.neotys.action.argument.Arguments;
-import com.neotys.action.argument.Option;
-import com.neotys.extensions.action.Action;
-import com.neotys.extensions.action.ActionParameter;
-import com.neotys.extensions.action.engine.ActionEngine;
-
 /**
  * Disconnect from a broker
  */
-public class DisconnectAction implements Action {
-	private static final String BUNDLE_NAME = "com.neotys.action.mqtt.disconnect.bundle";
-	private static final String DISPLAY_NAME = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("displayName");
-	private static final String DISPLAY_PATH = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("displayPath");
-	private static final ImageIcon ICON;
-
-	static {
-		final URL iconURL = DisconnectAction.class.getResource("disconnectaction.png");
-		ICON = iconURL != null ? new ImageIcon(iconURL) : null;
-	}
+public class DisconnectAction extends MqttAction {
+	private static final String DISPLAY_NAME= ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("disconnectName");
 
 	@Override
 	public List<ActionParameter> getDefaultActionParameters() {
@@ -70,11 +59,6 @@ public class DisconnectAction implements Action {
 	}
 
 	@Override
-	public boolean getDefaultIsHit(){
-		return true;
-	}
-
-	@Override
 	public String getDescription() {
 		return "Disconnect from an MQTT broker.\n\n" + Arguments.getArgumentDescriptions(DisconnectOption.values());
 	}
@@ -84,27 +68,13 @@ public class DisconnectAction implements Action {
 		return DISPLAY_NAME;
 	}
 
-	public String getDisplayPath() {
-		return DISPLAY_PATH;
-	}
-
 	@Override
 	public Class<? extends ActionEngine> getEngineClass() {
 		return DisconnectActionEngine.class;
 	}
 
 	@Override
-	public Icon getIcon() { return ICON; }
-
-	@Override
-	public Optional<String> getMaximumNeoLoadVersion() {
-		return Optional.absent();
-	}
-
-	@Override
-	public Optional<String> getMinimumNeoLoadVersion() {
-		return Optional.of("5.1");
-	}
+	public Icon getIcon() { return DISCONNECT_ICON; }
 
 	@Override
 	public String getType() {

@@ -27,35 +27,23 @@
  */
 package com.neotys.action.mqtt.receive;
 
-import java.net.URL;
+import com.neotys.action.argument.Arguments;
+import com.neotys.action.argument.Option;
+import com.neotys.action.mqtt.util.MqttAction;
+import com.neotys.extensions.action.ActionParameter;
+import com.neotys.extensions.action.engine.ActionEngine;
+
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-import javax.swing.*;
-
-import com.google.common.base.Optional;
-import com.neotys.action.argument.Arguments;
-import com.neotys.action.argument.Option;
-import com.neotys.extensions.action.Action;
-import com.neotys.extensions.action.ActionParameter;
-import com.neotys.extensions.action.engine.ActionEngine;
-
 /**
  * Receive messages from an MQTT broker on a topic
  */
-public class ReceiveAction implements Action {
-	private static final String BUNDLE_NAME = "com.neotys.action.mqtt.receive.bundle";
-	private static final String DISPLAY_NAME = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("displayName");
-	private static final String DISPLAY_PATH = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("displayPath");
-	private static final ImageIcon ICON;
-
-	static {
-		final URL iconURL = ReceiveAction.class.getResource("message.png");
-		ICON = iconURL != null ? new ImageIcon(iconURL) : null;
-	}
-
+public class ReceiveAction extends MqttAction {
+	private static final String DISPLAY_NAME = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("receiveName");
 	@Override
 	public List<ActionParameter> getDefaultActionParameters() {
 		final ArrayList<ActionParameter> parameters = new ArrayList<>();
@@ -70,11 +58,6 @@ public class ReceiveAction implements Action {
 	}
 
 	@Override
-	public boolean getDefaultIsHit(){
-		return true;
-	}
-
-	@Override
 	public String getDescription() {
 		return "Receive messages on a topic from an MQTT broker.\n\n" + Arguments.getArgumentDescriptions(ReceiveOption.values());
 	}
@@ -85,24 +68,13 @@ public class ReceiveAction implements Action {
         return DISPLAY_NAME;
     }
 
-    public String getDisplayPath()
-    {
-        return DISPLAY_PATH;
-    }
-
 	@Override
 	public Class<? extends ActionEngine> getEngineClass() {
 		return ReceiveActionEngine.class;
 	}
 
 	@Override
-	public Icon getIcon() { return ICON; }
-
-	@Override
-	public Optional<String> getMaximumNeoLoadVersion() { return Optional.absent(); }
-
-	@Override
-	public Optional<String> getMinimumNeoLoadVersion() { return Optional.of("5.1"); }
+	public Icon getIcon() { return MESSAGE_ICON; }
 
 	@Override
 	public String getType() { return "MQTT receive messages on a topic"; }
