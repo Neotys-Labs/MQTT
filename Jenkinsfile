@@ -1,3 +1,3 @@
 @Library('jenkins-groovy-lib')
-import startNlWebIndus
-startNlWebIndus()
+import startMavenJob
+startMavenJob("Custom Action", "attach-javadoc-source,java8-doclint-disabled")
