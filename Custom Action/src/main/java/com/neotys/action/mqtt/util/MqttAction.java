@@ -17,7 +17,7 @@ public abstract class MqttAction implements Action {
 	protected static final ImageIcon MESSAGE_ICON;
 
 	static {
-		final URL connectURL = MqttAction.class.getResource("connection.png");
+		final URL connectURL = MqttAction.class.getResource("connect.png");
 		CONNECT_ICON = connectURL != null ? new ImageIcon(connectURL) : null;
 		final URL disconnectURL = MqttAction.class.getResource("disconnect.png");
 		DISCONNECT_ICON = disconnectURL != null ? new ImageIcon(disconnectURL) : null;
