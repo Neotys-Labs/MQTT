@@ -59,8 +59,6 @@ public class ConnectActionEngine implements ActionEngine {
 	public SampleResult execute(final Context context, final List<ActionParameter> parameters) {
 		final Logger logger = context.getLogger();
 		SampleResult sampleResult = new SampleResult();
-		boolean propertiesmode=false;
-
 		final Map<String, Optional<String>> parsedArgs;
 		try {
 			parsedArgs = parseArguments(parameters, ConnectOption.values());
@@ -154,7 +152,6 @@ public class ConnectActionEngine implements ActionEngine {
 					return sampleResult;
 				}
 
-				propertiesmode = false;
 				if (password == null)
 					password = "";
 
@@ -214,9 +211,13 @@ public class ConnectActionEngine implements ActionEngine {
 					return sampleResult;
 				}
 
-				propertiesmode = true;
-
 				mqttConnectOptions.setSSLProperties(SSLUtil.getSSLProperties(keyStoreFile, keystorePassword, truststoreFile, truststorePassword));
+			}
+		} else {
+
+			if (!Strings.isNullOrEmpty(userName)) {
+				mqttConnectOptions.setUserName(userName);
+				mqttConnectOptions.setPassword(password.toCharArray());
 			}
 		}
 		sampleResult.sampleStart();

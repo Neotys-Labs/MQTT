@@ -8,6 +8,18 @@
  */
 package com.neotys.action.mqtt.connect;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMDecryptorProvider;
+import org.bouncycastle.openssl.PEMEncryptedKeyPair;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileReader;
@@ -18,29 +30,13 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Properties;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
-
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMDecryptorProvider;
-import org.bouncycastle.openssl.PEMEncryptedKeyPair;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
-
 class SSLUtil {
 
-    public static SSLSocketFactory getSocketFactory(final String caCrtFile, final String crtFile, final String keyFile,
+    static SSLSocketFactory getSocketFactory(final String caCrtFile, final String crtFile, final String keyFile,
                                                     final String password) {
         try {
             String Crtpath, CaCertpath,Keypath;
 
-            /**
-             * Add BouncyCastle as a Security Provider
-             */
             Security.addProvider(new BouncyCastleProvider());
 
             // load CA certificate
@@ -121,9 +117,8 @@ class SSLUtil {
         return null;
     }
 
-    public static Properties getSSLProperties(final String keystore, final String keystorePassword, final String trustore,
-                                              final String truststorepassword)
-    {
+    static Properties getSSLProperties(final String keystore, final String keystorePassword, final String trustore,
+                                       final String truststorepassword) {
         Properties props = new Properties();
 
         props.setProperty("com.ibm.ssl.protocol", "SSL");
