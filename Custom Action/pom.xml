@@ -23,11 +23,21 @@
             <artifactId>neotys-custom-action-util</artifactId>
             <version>1.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.53</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcmail-jdk15on</artifactId>
+            <version>1.53</version>
+        </dependency>
 
         <dependency>
             <groupId>org.eclipse.paho</groupId>
             <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
-            <version>1.1.0</version>
+            <version>1.2.0</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
