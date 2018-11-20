@@ -27,10 +27,13 @@
  */
 package com.neotys.action.mqtt.receive;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Optional;
@@ -53,9 +56,9 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  * Receive messages from an MQTT broker on a topic
  */
 public class ReceiveActionEngine implements ActionEngine {
-	
-	@Override
-	public SampleResult execute(Context context, List<ActionParameter> actionParameters) {
+    static String STATUS_CODE_DUPLICATE="NL_MQTT_DUPLICATE_MESSAGE";
+    @Override
+    public SampleResult execute(Context context, List<ActionParameter> actionParameters) {
         final Logger logger = context.getLogger();
         SampleResult sampleResult = new SampleResult();
 
@@ -87,11 +90,14 @@ public class ReceiveActionEngine implements ActionEngine {
         LinkedBlockingQueue<MqttMessage> messageQueue = (LinkedBlockingQueue<MqttMessage>) mqttClientWrapper.getQueueForTopic(topicName);
 
         if (messageQueue == null) {
+            //----not error but return the message in the sampleresult response----
             String errorMessage = "No subscription on topic '" + topicName +
                     "' found to receive messages from MQTT broker: " + mqttClientWrapper;
 
-            SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, errorMessage);
+            ///SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, errorMessage);
+            //----send the message in the
             logger.error(sampleResult.getResponseContent());
+
             return sampleResult;
         }
 
@@ -106,23 +112,34 @@ public class ReceiveActionEngine implements ActionEngine {
         MqttMessage mqttMessage = null;
 
         sampleResult.sampleStart();
-
+        StringBuilder statusMessage = new StringBuilder();
         // exit with an error if the contract is broken and failOnTimeout is true
         // otherwise exit with the payload of the last received message otherwise
         while(true) {
+
+
             // contract fulfilled
             if (numberMessagesReceived == expectedMessageCount) {
                 sampleResult.sampleEnd();
-                sampleResult.setStatusCode(STATUS_CODE_OK);
-                // TODO message payload is in bytes, so for the time being TINA: transform to string.
-                sampleResult.setResponseContent(new String(mqttMessage.getPayload()));
-                return sampleResult;
+                //----if duplicated message then generate an error-----------
+                if (mqttMessage != null) {
+                    if (mqttMessage.isDuplicate()) {
+                        SetResultAsError(sampleResult, STATUS_CODE_DUPLICATE, "Message is duplicated with the following payload " + GetStringMessageContent(mqttMessage));
+                        //---------------------------
+                    } else
+                        sampleResult.setStatusCode(STATUS_CODE_OK);
+                    // TODO message payload is in bytes, so for the time being TINA: transform to string.
+                    sampleResult.setResponseContent(statusMessage.toString());
+
+                }
+
             }
+
             // contract broken
             if (timeLeftToWait <= 0) {
                 sampleResult.sampleEnd();
 
-                StringBuilder statusMessage = new StringBuilder("Message reception contract not met on topic '");
+                statusMessage.append("Message reception contract not met on topic '");
                 statusMessage.append(topicName).append("' of MQTT Broker: ").append(mqttClientWrapper);
                 statusMessage.append(". Expected to receive ").append(expectedMessageCount).append(" message(s) in less than ");
                 statusMessage.append(timeout).append("ms, received only ");
@@ -144,13 +161,19 @@ public class ReceiveActionEngine implements ActionEngine {
             }
 
             try {
+                mqttMessage = null;
                 mqttMessage = messageQueue.poll(timeLeftToWait, TimeUnit.MILLISECONDS);
                 if (mqttMessage != null) {
                     numberMessagesReceived++;
+                    statusMessage.append("Message received "+mqttMessage.getId()+"\n");
+                    statusMessage.append("Content of the Message "+GetStringMessageContent(mqttMessage)+"\n");
+
                     if (logger.isDebugEnabled()) {
                         logger.debug("Received message on topic '" + topicName + "' on broker: " + mqttClientWrapper +
                                 ", message is '" + mqttMessage +
-                                "', payload is '" + mqttMessage.getPayload() + "'.");
+                                "', payload is '" + GetStringMessageContent(mqttMessage) + "'.");
+
+
                     }
                 }
             } catch (InterruptedException ie) { /* NOOP  timeLeftToWait will be <= 0 */ }
@@ -183,11 +206,51 @@ public class ReceiveActionEngine implements ActionEngine {
     private static boolean GetFailOnTimeout(final Map<String, Optional<String>> parsedArgs) {
         Optional<String> failOnTimeoutOptional = parsedArgs.get(ReceiveOption.ParamFailOnTimeout.getName());
         if (failOnTimeoutOptional.isPresent() && !Strings.isNullOrEmpty(failOnTimeoutOptional.get())) {
-            return Boolean.parseBoolean(failOnTimeoutOptional.get());
+            if(failOnTimeoutOptional.get().equalsIgnoreCase("false"))
+                return false;
+            else
+                return true;
         }
-        return Boolean.parseBoolean(ReceiveOption.ParamFailOnTimeout.getDefaultValue());
+        else
+            return Boolean.parseBoolean(ReceiveOption.ParamFailOnTimeout.getDefaultValue());
     }
+    /**
+     * GetStringContent of the message
+     *
+     * get the payload the message. Try to decompressed it if exception then return the string
+     *
+     * @return String
+     */
+    private static String GetStringMessageContent(MqttMessage mqttmess)
+    {
+        String decompressedData = null;
+        byte[] buffer = new byte[8192];
+        try {
+            ByteArrayInputStream byteStream = new ByteArrayInputStream(mqttmess.getPayload());
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            try {
+                GZIPInputStream zipStream = new GZIPInputStream(byteStream);
+                try {
 
+                    int c = 0;
+                    while ((c = zipStream.read(buffer)) > 0) {
+                        out.write(buffer, 0, c);
+                    }
+                } finally {
+                    zipStream.close();
+                }
+            } finally {
+                byteStream.close();
+            }
+            decompressedData = out.toString("UTF-8");
+            return decompressedData;
+        } catch (Exception e) {
+            //----not gzip format then return the string format of the payload------
+            decompressedData=new String(mqttmess.getPayload());
+            return decompressedData;
+        }
+
+    }
     /**
      * MessageCount
      *
@@ -204,5 +267,5 @@ public class ReceiveActionEngine implements ActionEngine {
     }
 
     @Override
-	public void stopExecute() { /* NOOP */ }
+    public void stopExecute() { /* NOOP */ }
 }

@@ -27,9 +27,11 @@
  */
 package com.neotys.action.mqtt.publish;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
+import java.util.zip.GZIPOutputStream;
 import com.google.common.base.Optional;
 import com.neotys.action.mqtt.util.MqttClientWrapper;
 import com.neotys.extensions.action.engine.Logger;
@@ -51,18 +53,19 @@ import static com.neotys.action.result.ResultFactory.STATUS_CODE_OK;
  */
 public class PublishActionEngine implements ActionEngine  {
 
-	@Override
-	public SampleResult execute(Context context, List<ActionParameter> actionParameters) {
+    @Override
+    public SampleResult execute(Context context, List<ActionParameter> actionParameters) {
         final Logger logger = context.getLogger();
-		SampleResult sampleResult = new SampleResult();
+        final StringBuilder responseBuilder = new StringBuilder();
+        SampleResult sampleResult = new SampleResult();
 
-		final Map<String, Optional<String>> parsedArgs;
-		try {
-			parsedArgs = parseArguments(actionParameters, PublishOption.values());
-		} catch (final IllegalArgumentException iae) {
-			SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
-			return sampleResult;
-		}
+        final Map<String, Optional<String>> parsedArgs;
+        try {
+            parsedArgs = parseArguments(actionParameters, PublishOption.values());
+        } catch (final IllegalArgumentException iae) {
+            SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
+            return sampleResult;
+        }
 
         if (logger.isDebugEnabled()) {
             logger.debug("Executing " + this.getClass().getName() + " with parameters: "
@@ -85,37 +88,32 @@ public class PublishActionEngine implements ActionEngine  {
             return sampleResult;
         }
 
-        // Message ?
-        // TODO Byte content ?
-        // TODO Seems that an empty message is acceptable, need to test and check
-        String message = "";
-        Optional<String> messageOptional = parsedArgs.get(PublishOption.ParamMessage.getName());
-        if (messageOptional.isPresent() && !Strings.isNullOrEmpty(messageOptional.get())) {
-            message = messageOptional.get();
-        }
+
 
         // QoS ? Look for value using the standard param or the deprecated one
         int QoS = GetQoS(parsedArgs);
 
 
-        MqttMessage mqttMessage = new MqttMessage(message.getBytes());
-        mqttMessage.setQos(QoS);
-        // TODO retained param
-        mqttMessage.setRetained(false);
 
-        MqttTopic topic = mqttClientWrapper.getMqttClient().getTopic(topicName);
-
-        // Actual publication
-        sampleResult.sampleStart();
 
         try {
+            MqttMessage mqttMessage = new MqttMessage(GetByteMessage(parsedArgs,responseBuilder));
+            mqttMessage.setQos(QoS);
+            // TODO retained param
+            mqttMessage.setRetained(false);
+
+            MqttTopic topic = mqttClientWrapper.getMqttClient().getTopic(topicName);
+
+            // Actual publication
+            sampleResult.sampleStart();
             MqttDeliveryToken token = topic.publish(mqttMessage);
             token.waitForCompletion();
 
             sampleResult.setStatusCode(STATUS_CODE_OK);
-            sampleResult.setResponseContent("Published message to topic '" + topicName + "' on broker: " + mqttClientWrapper +
+            appendLineToStringBuilder(responseBuilder,"Published message to topic '" + topicName + "' on broker: " + mqttClientWrapper +
                     ", message is '" + mqttMessage +
                     "', payload is '" + mqttMessage.getPayload() + "'.");
+            sampleResult.setResponseContent(responseBuilder.toString());
 
             if (logger.isDebugEnabled()) {
                 logger.debug(sampleResult.getResponseContent());
@@ -126,10 +124,31 @@ public class PublishActionEngine implements ActionEngine  {
             SetResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, mqttException);
             logger.error(sampleResult.getResponseContent());
         }
+        catch (IOException e) {
+            String errorMessage = "Error occurred compressing the content on  '" + topicName + "' on broker: " + mqttClientWrapper;
 
+            SetResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, e);
+            logger.error(sampleResult.getResponseContent());
+        }
         sampleResult.sampleEnd();
         return sampleResult;
-	}
+    }
+
+    /**
+     * Compression tag ? Look for value using the standard param or the deprecated one
+     *
+     * @return boolean specifying if compression of the message ( string) is required
+     */
+    private static boolean IsCompressionRequired(Map<String, Optional<String>> parsedArgs) {
+        Optional<String> CompressBool = parsedArgs.get(PublishOption.ParamCompression.getName());
+        if (CompressBool.isPresent() && !Strings.isNullOrEmpty(CompressBool.get())) {
+            if(CompressBool.get().equalsIgnoreCase("true"))
+                return true;
+            else
+                return false;
+        }
+        return false;
+    }
 
     /**
      * Topic name ? Look for value using the standard param or the deprecated one
@@ -166,8 +185,65 @@ public class PublishActionEngine implements ActionEngine  {
         }
         return Integer.parseInt(PublishOption.ParamQoS.getDefaultValue());
     }
+    /**
+     * Compression of the message ? compressing the byte in gzip format
+     *
+     *
+     * @return byte[]
+     */
+    public static byte[] getcompressdata(byte[] rawdata) throws IOException {
+        byte[] compresseddata = null;
+        ByteArrayOutputStream bytestream = new ByteArrayOutputStream(rawdata.length);
+        try {
+            GZIPOutputStream zipstream = new GZIPOutputStream(bytestream);
+            try {
+                zipstream.write(rawdata);
+            } finally {
+                zipstream.finish();
+                zipstream.close();
+            }
+        } finally {
+            bytestream.close();
+        }
+
+        compresseddata = bytestream.toByteArray();
+
+
+        return compresseddata;
+    }
+    private static void appendLineToStringBuilder(final StringBuilder sb, final String line){
+        sb.append(line).append("\n");
+    }
+
+    /**
+     * Get byte for mqttmessage. generating the byte[] for mqttmessage
+     * input : message string
+     *
+     * @return byte[]
+     */
+    public static byte[] GetByteMessage(Map<String, Optional<String>> parsedArgs,StringBuilder sample)  throws IOException  {
+        byte[] bytemesage = null;
+        // Message ?
+        // TODO Seems that an empty message is acceptable, need to test and check
+        String message = "";
+        Optional<String> messageOptional = parsedArgs.get(PublishOption.ParamMessage.getName());
+        if (messageOptional.isPresent() && !Strings.isNullOrEmpty(messageOptional.get())) {
+            message = messageOptional.get();
+        }
+        else
+            message="";
+
+        if(IsCompressionRequired(parsedArgs)) {
+            bytemesage = getcompressdata(message.getBytes());
+            appendLineToStringBuilder(sample,"Message Compressed in Gzip :Done ");
+        }
+        else
+            bytemesage=message.getBytes();
+
+        return bytemesage;
+    }
 
     @Override
-	public void stopExecute() { /* NOOP */ }
+    public void stopExecute() { /* NOOP */ }
 
 }

@@ -31,14 +31,15 @@ import com.neotys.action.argument.ArgumentValidator;
 import com.neotys.action.argument.Option;
 import com.neotys.extensions.action.ActionParameter;
 
-import static com.neotys.action.argument.DefaultArgumentValidator.*;
+import static com.neotys.action.argument.DefaultArgumentValidator.ALWAYS_VALID;
+import static com.neotys.action.argument.DefaultArgumentValidator.POSITIVE_LONG_VALIDATOR;
 import static com.neotys.action.argument.Option.AppearsByDefault.Hided;
 import static com.neotys.action.argument.Option.AppearsByDefault.True;
 import static com.neotys.action.argument.Option.OptionalRequired.Optional;
 import static com.neotys.action.argument.Option.OptionalRequired.Required;
 import static com.neotys.action.mqtt.util.MqttArgumentValidator.QOS_ARGUMENT_VALIDATOR;
-import static com.neotys.extensions.action.ActionParameter.Type.TEXT;
 import static com.neotys.action.mqtt.util.SharedParameterNames.*;
+import static com.neotys.extensions.action.ActionParameter.Type.TEXT;
 
 /**
  * Publish to MQTT topic parameters
@@ -189,6 +190,16 @@ enum PublishOption implements Option {
             /* DefaultValue */      "1883",
             /* Description */       "Deprecated: Port number of the MQTT broker. " +
             "As of version 1.0.1 of this action, use the 'BrokerAlias' parameter to identify the required broker.",
+            /* ArgumentValidator */ ALWAYS_VALID),
+
+    ParamCompression(
+            /* Name */              "PayLoadCompression",
+            /* Optional Required */ Optional,
+            /* AppearsByDefault */  True,
+            /* Type */              TEXT,
+            /* DefaultValue */      "false",
+            /* Description */       "Deprecated: Determine if the payload has be compressed in gzip. " +
+            "Value Possible True or False",
             /* ArgumentValidator */ ALWAYS_VALID);
 
     private final String name;
