@@ -56,7 +56,7 @@ public class DisconnectActionEngine implements ActionEngine {
 		try {
 			parsedArgs = parseArguments(actionParameters, DisconnectOption.values());
 		} catch (final IllegalArgumentException iae) {
-			SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
+			setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
 			return sampleResult;
 		}
 
@@ -90,7 +90,7 @@ public class DisconnectActionEngine implements ActionEngine {
 		}
 		catch (MqttException mqttException) {
             String errorMessage = "Error occurred disconnecting from MQTT Broker: " + mqttClientWrapper;
-            SetResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, mqttException);
+            setResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, mqttException);
 
             logger.error(sampleResult.getResponseContent());
 		}

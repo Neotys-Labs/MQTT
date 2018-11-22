@@ -37,7 +37,7 @@ public class SubscribeActionEngine implements ActionEngine {
         try {
             parsedArgs = parseArguments(actionParameters, SubscribeOption.values());
         } catch (final IllegalArgumentException iae) {
-            SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
+            setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
             return sampleResult;
         }
 
@@ -61,7 +61,7 @@ public class SubscribeActionEngine implements ActionEngine {
         if (subscriptionQueue != null) {
             String errorMessage = "Duplicate subscription on topic '" + topicName + "' of MQTT Broker: " + mqttClientWrapper;
 
-            SetResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage);
+            setResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage);
             logger.error(sampleResult.getResponseContent());
             return sampleResult;
         }
@@ -80,7 +80,7 @@ public class SubscribeActionEngine implements ActionEngine {
         catch(MqttException mqttException) {
             String errorMessage = "Error occurred subscribing to topic '" + topicName + "' on MQTT Broker: " + mqttClientWrapper;
 
-            SetResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, mqttException);
+            setResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, mqttException);
             logger.error(sampleResult.getResponseContent());
         }
         sampleResult.sampleEnd();

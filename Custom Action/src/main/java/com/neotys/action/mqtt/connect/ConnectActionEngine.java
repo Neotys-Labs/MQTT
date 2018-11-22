@@ -63,7 +63,7 @@ public class ConnectActionEngine implements ActionEngine {
 		try {
 			parsedArgs = parseArguments(parameters, ConnectOption.values());
 		} catch (final IllegalArgumentException iae) {
-			SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
+			setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
 			logger.error(sampleResult.getResponseContent());
 			return sampleResult;
 		}
@@ -77,7 +77,9 @@ public class ConnectActionEngine implements ActionEngine {
 		final Optional<String> clientIdOptional = parsedArgs.get(ConnectOption.ParamClientId.getName());
 		if (clientIdOptional.isPresent() && !Strings.isNullOrEmpty(clientIdOptional.get())) {
 			clientId = clientIdOptional.get();
-		} else clientId = UUID.randomUUID().toString();
+		} else {
+			clientId = UUID.randomUUID().toString();
+		}
 
 		String userName = null;
 		final Optional<String> userNameOptional = parsedArgs.get(ConnectOption.ParamUserName.getName());
@@ -96,58 +98,61 @@ public class ConnectActionEngine implements ActionEngine {
 			protocol = protocolOptional.get();
 		}
 
-		String mqttBrokerURL = ExtractBrokerURL(parsedArgs);
+		String mqttBrokerURL = extractBrokerURL(parsedArgs);
 		String brokerAlias;
 		final Optional<String> brokerAliasOptional = parsedArgs.get(ConnectOption.ParamBrokerAlias.getName());
 		if (brokerAliasOptional.isPresent() && !Strings.isNullOrEmpty(brokerAliasOptional.get())) {
 			brokerAlias = brokerAliasOptional.get();
 		}
 		// Ensure backward compatibility: if no brokerAlias is specified consider the brokerURL as the alias
-		else brokerAlias = mqttBrokerURL;
+		else {
+			brokerAlias = mqttBrokerURL;
+		}
 
 		// Construct and prepare connect options
-		MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
+		final MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
 
 		// TODO make these public and configurable
 		mqttConnectOptions.setCleanSession(true);
 		mqttConnectOptions.setKeepAliveInterval(30);
-		if (protocol.equalsIgnoreCase("ssl") || protocol.equalsIgnoreCase("tls")) {
-			String Cacert = null;
-			final Optional<String> CaCertOptional = parsedArgs.get(ParamCACert.getName());
-			if (CaCertOptional.isPresent() && !Strings.isNullOrEmpty(CaCertOptional.get())) {
-				Cacert = CaCertOptional.get();
-				if (!isFileExists(Cacert)) {
-					SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "CACERT does not exist " + Cacert);
+
+		if (protocol != null && (protocol.equalsIgnoreCase("ssl") || protocol.equalsIgnoreCase("tls"))) {
+			String cacert = null;
+			final Optional<String> caCertOptional = parsedArgs.get(ParamCACert.getName());
+			if (caCertOptional.isPresent() && !Strings.isNullOrEmpty(caCertOptional.get())) {
+				cacert = caCertOptional.get();
+				if (!isFileExists(cacert)) {
+					setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "CACERT does not exist " + cacert);
 					logger.error(sampleResult.getResponseContent());
 					return sampleResult;
 				}
 
-				String Certfile = null;
-				final Optional<String> CertfileOptional = parsedArgs.get(ParamCertFile.getName());
-				if (CertfileOptional.isPresent() && !Strings.isNullOrEmpty(CertfileOptional.get())) {
-					Certfile = CertfileOptional.get();
-					if (!isFileExists(Certfile)) {
-						SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Certfile does not exist " + Certfile);
+				String certfile = null;
+				final Optional<String> certfileOptional = parsedArgs.get(ParamCertFile.getName());
+				if (certfileOptional.isPresent() && !Strings.isNullOrEmpty(certfileOptional.get())) {
+					certfile = certfileOptional.get();
+					if (!isFileExists(certfile)) {
+						setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Certfile does not exist " + certfile);
 						logger.error(sampleResult.getResponseContent());
 						return sampleResult;
 					}
 				} else {
-					SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter CERTFILE");
+					setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter CERTFILE");
 					logger.error(sampleResult.getResponseContent());
 					return sampleResult;
 				}
 
-				String ClientPrivateKey = null;
-				final Optional<String> ClientPrivateKeyOptional = parsedArgs.get(ParamClientPrivateKey.getName());
-				if (ClientPrivateKeyOptional.isPresent() && !Strings.isNullOrEmpty(ClientPrivateKeyOptional.get())) {
-					ClientPrivateKey = ClientPrivateKeyOptional.get();
-					if (!isFileExists(ClientPrivateKey)) {
-						SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "ClientPrivateKey does not exist " + ClientPrivateKey);
+				String clientPrivateKey = null;
+				final Optional<String> clientPrivateKeyOptional = parsedArgs.get(ParamClientPrivateKey.getName());
+				if (clientPrivateKeyOptional.isPresent() && !Strings.isNullOrEmpty(clientPrivateKeyOptional.get())) {
+					clientPrivateKey = clientPrivateKeyOptional.get();
+					if (!isFileExists(clientPrivateKey)) {
+						setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "ClientPrivateKey does not exist " + clientPrivateKey);
 						logger.error(sampleResult.getResponseContent());
 						return sampleResult;
 					}
 				} else {
-					SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter CLIENTPRIVATEKEY");
+					setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter CLIENTPRIVATEKEY");
 					logger.error(sampleResult.getResponseContent());
 					return sampleResult;
 				}
@@ -155,7 +160,7 @@ public class ConnectActionEngine implements ActionEngine {
 				if (password == null)
 					password = "";
 
-				mqttConnectOptions.setSocketFactory(SSLUtil.getSocketFactory(Cacert, Certfile, ClientPrivateKey, password));
+				mqttConnectOptions.setSocketFactory(SSLUtil.getSocketFactory(cacert, certfile, clientPrivateKey, password));
 			} else {
 
 				//---test variables
@@ -164,12 +169,12 @@ public class ConnectActionEngine implements ActionEngine {
 				if (keyStoreFileOptional.isPresent() && !Strings.isNullOrEmpty(keyStoreFileOptional.get())) {
 					keyStoreFile = keyStoreFileOptional.get();
 					if (!isFileExists(keyStoreFile)) {
-						SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, ParamkeystoreFile.getName() + " does not exist " + keyStoreFile);
+						setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, ParamkeystoreFile.getName() + " does not exist " + keyStoreFile);
 						logger.error(sampleResult.getResponseContent());
 						return sampleResult;
 					}
 				} else {
-					SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter" + ParamkeystoreFile.getName());
+					setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter" + ParamkeystoreFile.getName());
 					logger.error(sampleResult.getResponseContent());
 					return sampleResult;
 				}
@@ -180,7 +185,7 @@ public class ConnectActionEngine implements ActionEngine {
 					keystorePassword = keyStorePasswordOptional.get();
 
 				} else {
-					SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter " + ParamkeystorePassword.getName());
+					setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter " + ParamkeystorePassword.getName());
 					logger.error(sampleResult.getResponseContent());
 					return sampleResult;
 				}
@@ -191,7 +196,7 @@ public class ConnectActionEngine implements ActionEngine {
 					truststorePassword = truststorePasswordOptional.get();
 
 				} else {
-					SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter " + ParamtrusttorePassword.getName());
+					setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter " + ParamtrusttorePassword.getName());
 					logger.error(sampleResult.getResponseContent());
 					return sampleResult;
 				}
@@ -201,24 +206,21 @@ public class ConnectActionEngine implements ActionEngine {
 				if (truststoreFileOptional.isPresent() && !Strings.isNullOrEmpty(truststoreFileOptional.get())) {
 					truststoreFile = truststoreFileOptional.get();
 					if (!isFileExists(truststoreFile)) {
-						SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, ParamtrustoreFile.getName() + " does not exist " + truststoreFile);
+						setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, ParamtrustoreFile.getName() + " does not exist " + truststoreFile);
 						logger.error(sampleResult.getResponseContent());
 						return sampleResult;
 					}
 				} else {
-					SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter" + ParamtrustoreFile.getName());
+					setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter" + ParamtrustoreFile.getName());
 					logger.error(sampleResult.getResponseContent());
 					return sampleResult;
 				}
 
 				mqttConnectOptions.setSSLProperties(SSLUtil.getSSLProperties(keyStoreFile, keystorePassword, truststoreFile, truststorePassword));
 			}
-		} else {
-
-			if (!Strings.isNullOrEmpty(userName)) {
-				mqttConnectOptions.setUserName(userName);
-				mqttConnectOptions.setPassword(password.toCharArray());
-			}
+		} else if (!Strings.isNullOrEmpty(userName)) {
+			mqttConnectOptions.setUserName(userName);
+			mqttConnectOptions.setPassword(password.toCharArray());
 		}
 		sampleResult.sampleStart();
 		try {
@@ -234,7 +236,7 @@ public class ConnectActionEngine implements ActionEngine {
 			if (mqttClientWrapper != null) {
 				if (mqttClientWrapper.isConnected()) {
 					String errorMessage = "Already connected to the MQTT broker: " + mqttClientWrapper;
-					SetResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, null);
+					setResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, null);
 
 					logger.error(sampleResult.getResponseContent());
 					sampleResult.sampleEnd();
@@ -261,7 +263,7 @@ public class ConnectActionEngine implements ActionEngine {
 			String errorMessage =
 					"Connection to MQTT broker: " + brokerAlias + " / " + mqttBrokerURL +
 							") failed : " + mqttException.getMessage();
-			SetResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, mqttException);
+			setResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, mqttException);
 			logger.error(sampleResult.getResponseContent(), mqttException);
 		}
 		sampleResult.sampleEnd();

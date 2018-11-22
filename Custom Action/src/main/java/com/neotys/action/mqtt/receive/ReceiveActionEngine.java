@@ -66,7 +66,7 @@ public class ReceiveActionEngine implements ActionEngine {
         try {
             parsedArgs = parseArguments(actionParameters, ReceiveOption.values());
         } catch (final IllegalArgumentException iae) {
-            SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
+            setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
             return sampleResult;
         }
 
@@ -94,7 +94,7 @@ public class ReceiveActionEngine implements ActionEngine {
             String errorMessage = "No subscription on topic '" + topicName +
                     "' found to receive messages from MQTT broker: " + mqttClientWrapper;
 
-            ///SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, errorMessage);
+            ///setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, errorMessage);
             //----send the message in the
             logger.error(sampleResult.getResponseContent());
 
@@ -124,7 +124,7 @@ public class ReceiveActionEngine implements ActionEngine {
                 //----if duplicated message then generate an error-----------
                 if (mqttMessage != null) {
                     if (mqttMessage.isDuplicate()) {
-                        SetResultAsError(sampleResult, STATUS_CODE_DUPLICATE, "Message is duplicated with the following payload " + GetStringMessageContent(mqttMessage));
+                        setResultAsError(sampleResult, STATUS_CODE_DUPLICATE, "Message is duplicated with the following payload " + GetStringMessageContent(mqttMessage));
                         //---------------------------
                     } else
                         sampleResult.setStatusCode(STATUS_CODE_OK);

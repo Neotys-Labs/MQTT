@@ -61,7 +61,7 @@ public class UnsubscribeActionEngine implements ActionEngine {
 		try {
 			parsedArgs = parseArguments(actionParameters, UnsubscribeOption.values());
 		} catch (final IllegalArgumentException iae) {
-			SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
+			setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
 			return sampleResult;
 		}
 
@@ -83,7 +83,7 @@ public class UnsubscribeActionEngine implements ActionEngine {
 		if (! mqttClientWrapper.removeQueueForTopic(topicName)) {
 			String errorMessage = "No subscription on topic '" + topicName + "' found to unsubscribe from on MQTT broker: " + mqttClientWrapper;
 
-			SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, errorMessage);
+			setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, errorMessage);
 			logger.error(sampleResult.getResponseContent());
 			return sampleResult;
 		}
@@ -101,7 +101,7 @@ public class UnsubscribeActionEngine implements ActionEngine {
         }
 		catch (MqttException mqttException) {
 			String errorMessage = "Error occurred unsubscribing from topic '" + topicName + "' on MQTT Broker: " + mqttClientWrapper;
-			SetResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage.toString(), mqttException);
+			setResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage.toString(), mqttException);
 			logger.error(sampleResult.getResponseContent());
 		}
 

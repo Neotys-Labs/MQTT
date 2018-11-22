@@ -65,7 +65,7 @@ public class MqttParameterUtilities {
 
         // No connection object, fail
         if (mqttClientWrapper == null) {
-            SetResultAsError(
+            setResultAsError(
                     sampleResult,
                     STATUS_CODE_ERROR_CONNECTION,
                     "Either a connection using the Connect Advanced Action has not been performed or 'BrokerAlias' is missing or wrong.");
@@ -76,7 +76,7 @@ public class MqttParameterUtilities {
         if (! mqttClientWrapper.isConnected()) {
             String errorMessage = "Connection to the broker found but not in a connected state: " + mqttClientWrapper.getServerURI();
 
-            SetResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage.toString());
+            setResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage.toString());
             return null;
         }
         return mqttClientWrapper;
@@ -103,7 +103,7 @@ public class MqttParameterUtilities {
         }
 
         // Deprecated: backward compatibility, use broker URL as alias i.e. as key to connection object
-        String brokerURL = ExtractBrokerURL(parsedArgs);
+        String brokerURL = extractBrokerURL(parsedArgs);
         MqttClientWrapper mqttClientWrapper = mqttVUContext.get(brokerURL);
         if (mqttClientWrapper != null) {
             return mqttClientWrapper;
@@ -124,7 +124,7 @@ public class MqttParameterUtilities {
      * @param parsedArgs
      * @return
      */
-    public static String ExtractBrokerURL(final Map<String, Optional<String>> parsedArgs) {
+    public static String extractBrokerURL(final Map<String, Optional<String>> parsedArgs) {
         StringBuilder mqttBrokerURL = new StringBuilder();
         final Optional<String> protocolOptional = parsedArgs.get(Protocol.name());
         if (protocolOptional != null && protocolOptional.isPresent() && !Strings.isNullOrEmpty(protocolOptional.get())) {
@@ -180,8 +180,8 @@ public class MqttParameterUtilities {
      * @param errorMessage
      * @param exception
      */
-    public static SampleResult SetResultAsError(final SampleResult sampleResult,
-                                         final String statusCode, final String errorMessage, final Exception exception) {
+    public static SampleResult setResultAsError(final SampleResult sampleResult,
+                                                final String statusCode, final String errorMessage, final Exception exception) {
         final StringBuilder statusMessageWithException = new StringBuilder(errorMessage);
         if (exception != null) {
             statusMessageWithException.append(": ").append(exception);
@@ -202,8 +202,8 @@ public class MqttParameterUtilities {
      * @param statusCode
      * @param errorMessage
      */
-    public static SampleResult SetResultAsError(final SampleResult sampleResult,
-                                        final String statusCode, final String errorMessage) {
-        return SetResultAsError(sampleResult, statusCode, errorMessage, null);
+    public static SampleResult setResultAsError(final SampleResult sampleResult,
+                                                final String statusCode, final String errorMessage) {
+        return setResultAsError(sampleResult, statusCode, errorMessage, null);
     }
 }

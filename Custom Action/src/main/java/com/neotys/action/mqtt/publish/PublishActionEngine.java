@@ -63,7 +63,7 @@ public class PublishActionEngine implements ActionEngine  {
         try {
             parsedArgs = parseArguments(actionParameters, PublishOption.values());
         } catch (final IllegalArgumentException iae) {
-            SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
+            setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, "Invalid parameter", iae);
             return sampleResult;
         }
 
@@ -83,7 +83,7 @@ public class PublishActionEngine implements ActionEngine  {
         String topicName = GetTopicName(parsedArgs);
         if (topicName == null) {
             String errorMessage = "Topic name expected to publish a message on an MQTT broker: " + mqttClientWrapper;
-            SetResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, errorMessage);
+            setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, errorMessage);
             logger.error(sampleResult.getResponseContent());
             return sampleResult;
         }
@@ -121,13 +121,13 @@ public class PublishActionEngine implements ActionEngine  {
         } catch (MqttException mqttException) {
             String errorMessage = "Error occurred publishing to topic '" + topicName + "' on broker: " + mqttClientWrapper;
 
-            SetResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, mqttException);
+            setResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, mqttException);
             logger.error(sampleResult.getResponseContent());
         }
         catch (IOException e) {
             String errorMessage = "Error occurred compressing the content on  '" + topicName + "' on broker: " + mqttClientWrapper;
 
-            SetResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, e);
+            setResultAsError(sampleResult, STATUS_CODE_ERROR_CONNECTION, errorMessage, e);
             logger.error(sampleResult.getResponseContent());
         }
         sampleResult.sampleEnd();
