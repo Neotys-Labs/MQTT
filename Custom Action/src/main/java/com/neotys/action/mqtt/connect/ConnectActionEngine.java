@@ -28,7 +28,6 @@
 package com.neotys.action.mqtt.connect;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Strings;
 import com.neotys.action.mqtt.util.MqttClientWrapper;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
@@ -45,6 +44,7 @@ import java.io.FileNotFoundException;
 import java.util.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.neotys.action.argument.Arguments.getArgumentLogString;
 import static com.neotys.action.argument.Arguments.parseArguments;
 import static com.neotys.action.mqtt.connect.ConnectOption.*;
@@ -98,7 +98,7 @@ public class ConnectActionEngine implements ActionEngine {
 			protocol = protocolOptional.get();
 		}
 
-		String mqttBrokerURL = extractBrokerURL(parsedArgs);
+		final String mqttBrokerURL = extractBrokerURL(parsedArgs);
 		String brokerAlias;
 		final Optional<String> brokerAliasOptional = parsedArgs.get(ConnectOption.ParamBrokerAlias.getName());
 		if (brokerAliasOptional.isPresent() && !isNullOrEmpty(brokerAliasOptional.get())) {
@@ -148,7 +148,7 @@ public class ConnectActionEngine implements ActionEngine {
 
 			// if no mqtt context has been associated to the current UP do it
 			if (mqttVUContext == null) {
-				mqttVUContext = new Hashtable<String, MqttClientWrapper>();
+				mqttVUContext = new Hashtable<>();
 				context.getCurrentVirtualUser().put(NL_MQTT_VU_CONTEXT, mqttVUContext);
 			}
 			MqttClientWrapper mqttClientWrapper = mqttVUContext.get(brokerAlias);
@@ -189,45 +189,11 @@ public class ConnectActionEngine implements ActionEngine {
 		return sampleResult;
 	}
 
-	private Properties newSslPropertiesFromKeyStore(final Map<String, Optional<String>> parsedArgs) throws FileNotFoundException {
-		//---test variables
-		String keyStoreFile;
-		final Optional<String> keyStoreFileOptional = parsedArgs.get(ParamkeystoreFile.getName());
-		if (keyStoreFileOptional.isPresent() && !isNullOrEmpty(keyStoreFileOptional.get())) {
-			keyStoreFile = keyStoreFileOptional.get();
-			if (!isFileExists(keyStoreFile)) {
-				throw new FileNotFoundException(ParamkeystoreFile.getName() + " does not exist " + keyStoreFile);
-			}
-		} else {
-			throw new IllegalArgumentException("Invalid parameter" + ParamkeystoreFile.getName());
-		}
-
-		String keystorePassword;
-		final Optional<String> keyStorePasswordOptional = parsedArgs.get(ParamkeystorePassword.getName());
-		if (keyStorePasswordOptional.isPresent() && !isNullOrEmpty(keyStorePasswordOptional.get())) {
-			keystorePassword = keyStorePasswordOptional.get();
-		} else {
-			throw new IllegalArgumentException("Invalid parameter " + ParamkeystorePassword.getName());
-		}
-
-		String truststorePassword;
-		final Optional<String> truststorePasswordOptional = parsedArgs.get(ParamtrusttorePassword.getName());
-		if (truststorePasswordOptional.isPresent() && !isNullOrEmpty(truststorePasswordOptional.get())) {
-			truststorePassword = truststorePasswordOptional.get();
-		} else {
-			throw new IllegalArgumentException("Invalid parameter " + ParamtrusttorePassword.getName());
-		}
-
-		String truststoreFile;
-		final Optional<String> truststoreFileOptional = parsedArgs.get(ParamtrustoreFile.getName());
-		if (truststoreFileOptional.isPresent() && !isNullOrEmpty(truststoreFileOptional.get())) {
-			truststoreFile = truststoreFileOptional.get();
-			if (!isFileExists(truststoreFile)) {
-				throw new FileNotFoundException(ParamtrustoreFile.getName() + " does not exist " + truststoreFile);
-			}
-		} else {
-			throw new IllegalArgumentException("Invalid parameter" + ParamtrustoreFile.getName());
-		}
+	private static Properties newSslPropertiesFromKeyStore(final Map<String, Optional<String>> parsedArgs) throws FileNotFoundException {
+		final String keyStoreFile = validateFileParameter(parsedArgs, ParamkeystoreFile);
+		final String keystorePassword = validateParameter(parsedArgs, ParamkeystorePassword);
+		final String truststorePassword = validateParameter(parsedArgs, ParamtrusttorePassword);
+		final String truststoreFile = validateFileParameter(parsedArgs, ParamtrustoreFile);
 
 		return SSLUtil.getSSLProperties(keyStoreFile, keystorePassword, truststoreFile, truststorePassword);
 	}
@@ -239,33 +205,38 @@ public class ConnectActionEngine implements ActionEngine {
 			throw new FileNotFoundException("CACERT does not exist " + caCert);
 		}
 
-		String certfile;
-		final Optional<String> certfileOptional = parsedArgs.get(ParamCertFile.getName());
-		if (certfileOptional.isPresent() && !isNullOrEmpty(certfileOptional.get())) {
-			certfile = certfileOptional.get();
-			if (!isFileExists(certfile)) {
-				throw new FileNotFoundException("Certfile does not exist " + certfile);
-			}
-		} else {
-			throw new IllegalArgumentException("Invalid parameter CertFile");
-		}
+		final String certfile = validateFileParameter(parsedArgs, ParamCertFile);
+		final String clientPrivateKey = validateFileParameter(parsedArgs, ParamClientPrivateKey);
 
-		String clientPrivateKey;
-		final Optional<String> clientPrivateKeyOptional = parsedArgs.get(ParamClientPrivateKey.getName());
-		if (clientPrivateKeyOptional.isPresent() && !isNullOrEmpty(clientPrivateKeyOptional.get())) {
-			clientPrivateKey = clientPrivateKeyOptional.get();
-			if (!isFileExists(clientPrivateKey)) {
-				throw new FileNotFoundException("ClientPrivateKey does not exist " + clientPrivateKey);
-			}
-		} else {
-			throw new IllegalArgumentException("Invalid parameter ClientPrivateKey");
-		}
+		return SSLUtil.getSocketFactory(caCert, certfile, clientPrivateKey, nullToEmpty(password));
+	}
 
-		return SSLUtil.getSocketFactory(caCert, certfile, clientPrivateKey, Strings.nullToEmpty(password));
+	private static String validateParameter(final Map<String, Optional<String>> parsedArgs, final ConnectOption option) {
+		final Optional<String> parameterOptional = parsedArgs.get(option.getName());
+		if (parameterOptional.isPresent() && !isNullOrEmpty(parameterOptional.get())) {
+			return parameterOptional.get();
+		} else {
+			throw new IllegalArgumentException("Missing parameter " + option.getName());
+		}
+	}
+
+	private static String validateFileParameter(final Map<String, Optional<String>> parsedArgs,
+												final ConnectOption option) throws FileNotFoundException {
+		final Optional<String> parameterOptional = parsedArgs.get(option.getName());
+		if (parameterOptional.isPresent() && !isNullOrEmpty(parameterOptional.get())) {
+			final String path = parameterOptional.get();
+			if (!isFileExists(path)) {
+				throw new FileNotFoundException(option.getName() + " does not exist " + path);
+			}
+			return path;
+		} else {
+			throw new IllegalArgumentException("Missing parameter" + option.getName());
+		}
 	}
 
 	private static boolean isSecureProtocol(final String protocol) {
-		return protocol != null && (protocol.equalsIgnoreCase("ssl") || protocol.equalsIgnoreCase("tls"));
+		return protocol != null
+				&& (protocol.equalsIgnoreCase("ssl") || protocol.equalsIgnoreCase("tls"));
 	}
 
 	private static boolean isFileExists(final String filePath) {
