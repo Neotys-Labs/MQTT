@@ -28,6 +28,7 @@
 package com.neotys.action.mqtt.connect;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.neotys.action.mqtt.util.MqttClientWrapper;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
@@ -139,7 +140,7 @@ public class ConnectActionEngine implements ActionEngine {
 			}
 		} else if (!isNullOrEmpty(userName)) {
 			mqttConnectOptions.setUserName(userName);
-			mqttConnectOptions.setPassword(password.toCharArray());
+			mqttConnectOptions.setPassword(Strings.nullToEmpty(password).toCharArray());
 		}
 		sampleResult.sampleStart();
 		try {
