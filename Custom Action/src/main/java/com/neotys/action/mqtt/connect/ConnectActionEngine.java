@@ -29,6 +29,8 @@ package com.neotys.action.mqtt.connect;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import com.google.common.base.Supplier;
+import com.neotys.action.argument.Option;
 import com.neotys.action.mqtt.util.MqttClientWrapper;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
@@ -39,13 +41,11 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
-import javax.net.ssl.SSLSocketFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.base.Strings.nullToEmpty;
 import static com.neotys.action.argument.Arguments.getArgumentLogString;
 import static com.neotys.action.argument.Arguments.parseArguments;
 import static com.neotys.action.mqtt.connect.ConnectOption.*;
@@ -74,41 +74,23 @@ public class ConnectActionEngine implements ActionEngine {
 					+ getArgumentLogString(parsedArgs, ConnectOption.values()));
 		}
 
-		String clientId;
-		final Optional<String> clientIdOptional = parsedArgs.get(ConnectOption.ParamClientId.getName());
-		if (clientIdOptional.isPresent() && !isNullOrEmpty(clientIdOptional.get())) {
-			clientId = clientIdOptional.get();
-		} else {
-			clientId = UUID.randomUUID().toString();
-		}
+		final String clientId = getParameter(parsedArgs, ParamClientId, () -> UUID.randomUUID().toString());
+		final String userName = getParameter(parsedArgs, ParamUserName, null);
+		final String password = getParameter(parsedArgs, ParamPassword, null);
+		final String protocol = getParameter(parsedArgs, ParamProtocol, null);
 
-		String userName = null;
-		final Optional<String> userNameOptional = parsedArgs.get(ConnectOption.ParamUserName.getName());
-		if (userNameOptional.isPresent() && !isNullOrEmpty(userNameOptional.get())) {
-			userName = userNameOptional.get();
-		}
+		final boolean trustAllCa = getParameter(parsedArgs, ParamClientTrustAll, ()->"false").equalsIgnoreCase("true");
 
-		String password = null;
-		final Optional<String> passwordOptional = parsedArgs.get(ConnectOption.ParamPassword.getName());
-		if (passwordOptional.isPresent() && !isNullOrEmpty(passwordOptional.get())) {
-			password = passwordOptional.get();
-		}
-		String protocol = null;
-		final Optional<String> protocolOptional = parsedArgs.get(ParamProtocol.getName());
-		if (protocolOptional.isPresent() && !isNullOrEmpty(protocolOptional.get())) {
-			protocol = protocolOptional.get();
-		}
+		final String caPath = getParameter(parsedArgs, ParamCACert,null);
+		final String certfile = getParameter(parsedArgs, ParamClientCertFile, null);
+
+
 
 		final String mqttBrokerURL = extractBrokerURL(parsedArgs);
-		String brokerAlias;
-		final Optional<String> brokerAliasOptional = parsedArgs.get(ConnectOption.ParamBrokerAlias.getName());
-		if (brokerAliasOptional.isPresent() && !isNullOrEmpty(brokerAliasOptional.get())) {
-			brokerAlias = brokerAliasOptional.get();
-		}
+
 		// Ensure backward compatibility: if no brokerAlias is specified consider the brokerURL as the alias
-		else {
-			brokerAlias = mqttBrokerURL;
-		}
+		final String brokerAlias = getParameter(parsedArgs, ParamBrokerAlias, () -> mqttBrokerURL);
+
 
 		// Construct and prepare connect options
 		final MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
@@ -118,28 +100,37 @@ public class ConnectActionEngine implements ActionEngine {
 		mqttConnectOptions.setKeepAliveInterval(30);
 
 		if (isSecureProtocol(protocol)) {
-			final Optional<String> caCertOptional = parsedArgs.get(ParamCACert.getName());
-			if (caCertOptional.isPresent() && !isNullOrEmpty(caCertOptional.get())) {
-				try {
-					final SSLSocketFactory sslSocketFactory = newwSSLSocketFactoryFromCaCert(parsedArgs, caCertOptional.get(), password);
-					mqttConnectOptions.setSocketFactory(sslSocketFactory);
-				} catch (final FileNotFoundException | IllegalArgumentException e) {
-					setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, e.getMessage());
-					logger.error(sampleResult.getResponseContent());
-					return sampleResult;
-				}
-			} else {
-				try {
+			try {
+				if (trustAllCa || caPath != null || certfile != null) {
+					SSLFactoryUtils sslFactoryUtils = new SSLFactoryUtils();
+					if (trustAllCa) {
+						sslFactoryUtils.trustAll();
+					}
+					if (caPath != null) {
+						sslFactoryUtils.trustCa(caPath);
+					}
+
+					if (certfile != null) {
+						final String clientPrivateKey = validateFileParameter(parsedArgs, ParamClientPrivateKey);
+						final String privateKeyPassword = getParameter(parsedArgs, ParamClientPrivateKeyPassword, () -> "");
+						sslFactoryUtils.clientCert(certfile, clientPrivateKey, privateKeyPassword);
+					}
+
+					mqttConnectOptions.setSocketFactory(sslFactoryUtils.build());
+				} else if (parsedArgs.get(ParamTrustStoreFile.getName()).isPresent()) {
 					final Properties sslProperties = newSslPropertiesFromKeyStore(parsedArgs);
 					mqttConnectOptions.setSSLProperties(sslProperties);
-				} catch (final FileNotFoundException | IllegalArgumentException e) {
-					setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, e.getMessage());
-					logger.error(sampleResult.getResponseContent());
-					return sampleResult;
 				}
+			} catch (final Exception e) {
+				setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, e.getMessage());
+				logger.error(sampleResult.getResponseContent());
+				return sampleResult;
 			}
-		} else if (!isNullOrEmpty(userName)) {
+		}
+		if (!isNullOrEmpty(userName)) {
 			mqttConnectOptions.setUserName(userName);
+		}
+		if(!isNullOrEmpty(password)){
 			mqttConnectOptions.setPassword(Strings.nullToEmpty(password).toCharArray());
 		}
 		sampleResult.sampleStart();
@@ -190,27 +181,28 @@ public class ConnectActionEngine implements ActionEngine {
 		return sampleResult;
 	}
 
-	private static Properties newSslPropertiesFromKeyStore(final Map<String, Optional<String>> parsedArgs) throws FileNotFoundException {
-		final String keyStoreFile = validateFileParameter(parsedArgs, ParamkeystoreFile);
-		final String keystorePassword = validateParameter(parsedArgs, ParamkeystorePassword);
-		final String truststorePassword = validateParameter(parsedArgs, ParamtrusttorePassword);
-		final String truststoreFile = validateFileParameter(parsedArgs, ParamtrustoreFile);
-
-		return SSLUtil.getSSLProperties(keyStoreFile, keystorePassword, truststoreFile, truststorePassword);
-	}
-
-	private SSLSocketFactory newwSSLSocketFactoryFromCaCert(final Map<String, Optional<String>> parsedArgs,
-															final String caCert,
-															final String password) throws FileNotFoundException {
-		if (!isFileExists(caCert)) {
-			throw new FileNotFoundException("CACERT does not exist " + caCert);
+	private String getParameter(final Map<String, Optional<String>> parsedArgs, final Option key, Supplier<String> defaultValue) {
+		final String stringOptional = parsedArgs.get(key.getName()).orNull();
+		if (isNullOrEmpty(stringOptional)) {
+			if (defaultValue != null) {
+				return defaultValue.get();
+			} else {
+				return null;
+			}
+		} else {
+			return stringOptional;
 		}
-
-		final String certfile = validateFileParameter(parsedArgs, ParamCertFile);
-		final String clientPrivateKey = validateFileParameter(parsedArgs, ParamClientPrivateKey);
-
-		return SSLUtil.getSocketFactory(caCert, certfile, clientPrivateKey, nullToEmpty(password));
 	}
+
+	private static Properties newSslPropertiesFromKeyStore(final Map<String, Optional<String>> parsedArgs) throws FileNotFoundException {
+		final String keyStoreFile = validateFileParameter(parsedArgs, ParamKeyStoreFile);
+		final String keystorePassword = validateParameter(parsedArgs, ParamKeyStorePassword);
+		final String truststorePassword = validateParameter(parsedArgs, ParamTrustStorePassword);
+		final String truststoreFile = validateFileParameter(parsedArgs, ParamTrustStoreFile);
+
+		return getSSLProperties(keyStoreFile, keystorePassword, truststoreFile, truststorePassword);
+	}
+
 
 	private static String validateParameter(final Map<String, Optional<String>> parsedArgs, final ConnectOption option) {
 		final Optional<String> parameterOptional = parsedArgs.get(option.getName());
@@ -222,7 +214,7 @@ public class ConnectActionEngine implements ActionEngine {
 	}
 
 	private static String validateFileParameter(final Map<String, Optional<String>> parsedArgs,
-												final ConnectOption option) throws FileNotFoundException {
+	                                            final ConnectOption option) throws FileNotFoundException {
 		final Optional<String> parameterOptional = parsedArgs.get(option.getName());
 		if (parameterOptional.isPresent() && !isNullOrEmpty(parameterOptional.get())) {
 			final String path = parameterOptional.get();
@@ -246,4 +238,18 @@ public class ConnectActionEngine implements ActionEngine {
 
 	@Override
 	public void stopExecute() { /* NOOP */ }
+
+	static Properties getSSLProperties(final String keystore, final String keystorePassword, final String trustore,
+	                                   final String truststorepassword) {
+		Properties props = new Properties();
+
+		props.setProperty("com.ibm.ssl.protocol", "SSL");
+		props.setProperty("com.ibm.ssl.keyStoreType", "JKS");
+		props.setProperty("com.ibm.ssl.keyStore", keystore);
+		props.setProperty("com.ibm.ssl.keyStorePassword", keystorePassword);
+		props.setProperty("com.ibm.ssl.trustStore", trustore);
+		props.setProperty("com.ibm.ssl.trustStorePassword", truststorepassword);
+
+		return props;
+	}
 }

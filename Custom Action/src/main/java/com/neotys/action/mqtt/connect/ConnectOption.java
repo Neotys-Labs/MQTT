@@ -140,8 +140,8 @@ enum ConnectOption implements Option {
 	/**
 	 * certfile
 	 */
-	ParamCertFile(
-			/* Name */              "CertFile",
+	ParamClientCertFile(
+			/* Name */              "ClientCertFile",
 			/* Optional Required */ Optional,
 			/* AppearsByDefault */  False,
 			/* Type */              TEXT,
@@ -161,9 +161,21 @@ enum ConnectOption implements Option {
 			/* ArgumentValidator */ ALWAYS_VALID),
 
 	/**
+	 * ClientPrivateKeyPassword
+	 */
+	ParamClientPrivateKeyPassword(
+			/* Name */              "ClientPrivateKeyPassword",
+			/* Optional Required */ Optional,
+			/* AppearsByDefault */  False,
+			/* Type */              TEXT,
+			/* DefaultValue */      "",
+			/* Description */       "The password of the private key",
+			/* ArgumentValidator */ ALWAYS_VALID),
+
+	/**
 	 * keystore
 	 */
-	ParamkeystoreFile(
+	ParamKeyStoreFile(
 			/* Name */              "KeyStoreFile",
 			/* Optional Required */ Optional,
 			/* AppearsByDefault */  False,
@@ -174,7 +186,7 @@ enum ConnectOption implements Option {
 	/**
 	 * ClientPrivateKey
 	 */
-	ParamkeystorePassword(
+	ParamKeyStorePassword(
 			/* Name */              "KeyStorePassword",
 			/* Optional Required */ Optional,
 			/* AppearsByDefault */  False,
@@ -185,7 +197,7 @@ enum ConnectOption implements Option {
 	/**
 	 * keystore
 	 */
-	ParamtrustoreFile(
+	ParamTrustStoreFile(
 			/* Name */              "TrustStoreFile",
 			/* Optional Required */ Optional,
 			/* AppearsByDefault */  False,
@@ -196,7 +208,7 @@ enum ConnectOption implements Option {
 	/**
 	 * ClientPrivateKey
 	 */
-	ParamtrusttorePassword(
+	ParamTrustStorePassword(
 			/* Name */              "TrustStorePassword",
 			/* Optional Required */ Optional,
 			/* AppearsByDefault */  False,
@@ -211,6 +223,14 @@ enum ConnectOption implements Option {
 			/* Type */              TEXT,
 			/* DefaultValue */      "",
 			/* Description */       "Identifier of the MQTT client connecting to the MQTT broker (expected to be unique per broker, default is a randomly generated client identifier guaranteed to be unique per User Path and per Load Generator).",
+			/* ArgumentValidator */ ALWAYS_VALID),
+	ParamClientTrustAll(
+			/* Name */              "TrustAllCert",
+			/* OptionalRequired */  Optional,
+			/* AppearsByDefault */  False,
+			/* Type */              TEXT,
+			/* DefaultValue */      "",
+			/* Description */       "Trust all server certificates.",
 			/* ArgumentValidator */ ALWAYS_VALID),
 	;
 
