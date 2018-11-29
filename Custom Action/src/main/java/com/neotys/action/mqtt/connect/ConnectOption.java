@@ -39,6 +39,7 @@ import static com.neotys.action.argument.Option.OptionalRequired.Optional;
 import static com.neotys.action.mqtt.util.MqttArgumentValidator.HOST_ARGUMENT_VALIDATOR;
 import static com.neotys.action.mqtt.util.MqttArgumentValidator.PROTOCOL_ARGUMENT_VALIDATOR;
 import static com.neotys.action.mqtt.util.SharedParameterNames.*;
+import static com.neotys.extensions.action.ActionParameter.Type.PASSWORD;
 import static com.neotys.extensions.action.ActionParameter.Type.TEXT;
 
 /**
@@ -119,7 +120,7 @@ enum ConnectOption implements Option {
 			/* Name */              Password.name(),
 			/* Optional Required */ Optional,
 			/* AppearsByDefault */  True,
-			/* Type */              TEXT,
+			/* Type */              PASSWORD,
 			/* DefaultValue */      "",
 			/* Description */       "Password for authenticating and authorizing the client on the MQTT broker.\n In the case of SSL specify the password of you private key",
 			/* ArgumentValidator */ ALWAYS_VALID),
@@ -167,7 +168,7 @@ enum ConnectOption implements Option {
 			/* Name */              "ClientPrivateKeyPassword",
 			/* Optional Required */ Optional,
 			/* AppearsByDefault */  False,
-			/* Type */              TEXT,
+			/* Type */              PASSWORD,
 			/* DefaultValue */      "",
 			/* Description */       "The password of the private key",
 			/* ArgumentValidator */ ALWAYS_VALID),
@@ -190,7 +191,7 @@ enum ConnectOption implements Option {
 			/* Name */              "KeyStorePassword",
 			/* Optional Required */ Optional,
 			/* AppearsByDefault */  False,
-			/* Type */              TEXT,
+			/* Type */              PASSWORD,
 			/* DefaultValue */      "",
 			/* Description */       "Password of the keystore",
 			/* ArgumentValidator */ ALWAYS_VALID),
@@ -212,7 +213,7 @@ enum ConnectOption implements Option {
 			/* Name */              "TrustStorePassword",
 			/* Optional Required */ Optional,
 			/* AppearsByDefault */  False,
-			/* Type */              TEXT,
+			/* Type */              PASSWORD,
 			/* DefaultValue */      "",
 			/* Description */       "Password of the truststore",
 			/* ArgumentValidator */ ALWAYS_VALID),
