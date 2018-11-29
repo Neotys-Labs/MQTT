@@ -45,18 +45,18 @@ public class SSLFactoryUtils {
 
 
 	public void trustCa(final String caFile) throws Exception {
-		FileInputStream fis = new FileInputStream(new File(caFile));
-		X509Certificate ca = (X509Certificate) CertificateFactory.getInstance("X.509")
-				.generateCertificate(new BufferedInputStream(fis));
+		try(FileInputStream fis = new FileInputStream(new File(caFile))) {
+			X509Certificate ca = (X509Certificate) CertificateFactory.getInstance("X.509")
+					.generateCertificate(new BufferedInputStream(fis));
 
-		KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-		ks.load(null, null);
-		ks.setCertificateEntry(Integer.toString(1), ca);
+			KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+			ks.load(null, null);
+			ks.setCertificateEntry(Integer.toString(1), ca);
 
-		TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-		tmf.init(ks);
-
-		this.trustManagers = tmf.getTrustManagers();
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			tmf.init(ks);
+			this.trustManagers = tmf.getTrustManagers();
+		}
 	}
 
 	public void clientCert(final String crtFile, final String keyFile, final String password) throws Exception {
