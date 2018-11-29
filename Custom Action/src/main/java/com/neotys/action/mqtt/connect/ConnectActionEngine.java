@@ -79,7 +79,7 @@ public class ConnectActionEngine implements ActionEngine {
 		final String password = getParameter(parsedArgs, ParamPassword, null);
 		final String protocol = getParameter(parsedArgs, ParamProtocol, null);
 
-		final boolean trustAllCa = getParameter(parsedArgs, ParamClientTrustAll, ()->"false").equalsIgnoreCase("true");
+		final boolean trustAllCa = "true".equalsIgnoreCase(getParameter(parsedArgs, ParamClientTrustAll, ()->"false"));
 
 		final String caPath = getParameter(parsedArgs, ParamCACert,null);
 		final String certfile = getParameter(parsedArgs, ParamClientCertFile, null);
