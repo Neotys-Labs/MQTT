@@ -94,9 +94,9 @@ public class ReceiveActionEngine implements ActionEngine {
             String errorMessage = "No subscription on topic '" + topicName +
                     "' found to receive messages from MQTT broker: " + mqttClientWrapper;
 
-            ///setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, errorMessage);
+            setResultAsError(sampleResult, STATUS_CODE_INVALID_PARAMETER, errorMessage);
             //----send the message in the
-            logger.error(sampleResult.getResponseContent());
+            //logger.error(sampleResult.getResponseContent());
 
             return sampleResult;
         }
@@ -126,13 +126,14 @@ public class ReceiveActionEngine implements ActionEngine {
                     if (mqttMessage.isDuplicate()) {
                         setResultAsError(sampleResult, STATUS_CODE_DUPLICATE, "Message is duplicated with the following payload " + GetStringMessageContent(mqttMessage));
                         //---------------------------
-                    } else
-                        sampleResult.setStatusCode(STATUS_CODE_OK);
-                    // TODO message payload is in bytes, so for the time being TINA: transform to string.
-                    sampleResult.setResponseContent(statusMessage.toString());
+                    } else {
+	                    sampleResult.setStatusCode(STATUS_CODE_OK);
 
+                    }
+	                // TODO message payload is in bytes, so for the time being TINA: transform to string.
+	                sampleResult.setResponseContent(statusMessage.toString());
+	                return sampleResult;
                 }
-
             }
 
             // contract broken
