@@ -193,13 +193,13 @@ enum PublishOption implements Option {
             /* ArgumentValidator */ ALWAYS_VALID),
 
     ParamCompression(
-            /* Name */              "PayLoadCompression",
+            /* Name */              "Compression",
             /* Optional Required */ Optional,
-            /* AppearsByDefault */  True,
+            /* AppearsByDefault */  Hided, // Not officially tested and documented.
             /* Type */              TEXT,
             /* DefaultValue */      "false",
-            /* Description */       "Deprecated: Determine if the payload has be compressed in gzip. " +
-            "Value Possible True or False",
+            /* Description */       "Determine if the message should be compressed in gzip." +
+            "Value Possibles are True and False. Default is false.",
             /* ArgumentValidator */ ALWAYS_VALID);
 
     private final String name;
@@ -213,13 +213,6 @@ enum PublishOption implements Option {
     /**
      * Ctr
      *
-     * @param name
-     * @param optionalRequired
-     * @param appearsByDefault
-     * @param type
-     * @param defaultValue
-     * @param description
-     * @param argumentValidator
      */
     PublishOption(final String name, final OptionalRequired optionalRequired,
                   final AppearsByDefault appearsByDefault,
