@@ -27,6 +27,16 @@
  */
 package com.neotys.action.mqtt.receive;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
+import com.neotys.action.mqtt.util.MqttClientWrapper;
+import com.neotys.extensions.action.ActionParameter;
+import com.neotys.extensions.action.engine.ActionEngine;
+import com.neotys.extensions.action.engine.Context;
+import com.neotys.extensions.action.engine.Logger;
+import com.neotys.extensions.action.engine.SampleResult;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -35,22 +45,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
-import com.google.common.base.Strings;
-import com.google.common.base.Optional;
-
-import com.neotys.extensions.action.ActionParameter;
-import com.neotys.extensions.action.engine.ActionEngine;
-import com.neotys.extensions.action.engine.Context;
-import com.neotys.extensions.action.engine.SampleResult;
-import com.neotys.extensions.action.engine.Logger;
-
-import static com.neotys.action.result.ResultFactory.STATUS_CODE_OK;
 import static com.neotys.action.argument.Arguments.getArgumentLogString;
 import static com.neotys.action.argument.Arguments.parseArguments;
 import static com.neotys.action.mqtt.util.MqttParameterUtilities.*;
-
-import com.neotys.action.mqtt.util.MqttClientWrapper;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import static com.neotys.action.result.ResultFactory.STATUS_CODE_OK;
 
 /**
  * Receive messages from an MQTT broker on a topic
@@ -124,7 +122,7 @@ public class ReceiveActionEngine implements ActionEngine {
                 //----if duplicated message then generate an error-----------
                 if (mqttMessage != null) {
                     if (mqttMessage.isDuplicate()) {
-                        setResultAsError(sampleResult, STATUS_CODE_DUPLICATE, "Message is duplicated with the following payload " + GetStringMessageContent(mqttMessage));
+                        setResultAsError(sampleResult, STATUS_CODE_DUPLICATE, "Message is duplicated with the following payload " + getStringMessageContent(mqttMessage));
                         //---------------------------
                     } else {
 	                    sampleResult.setStatusCode(STATUS_CODE_OK);
@@ -166,13 +164,13 @@ public class ReceiveActionEngine implements ActionEngine {
                 mqttMessage = messageQueue.poll(timeLeftToWait, TimeUnit.MILLISECONDS);
                 if (mqttMessage != null) {
                     numberMessagesReceived++;
-                    statusMessage.append("Message received "+mqttMessage.getId()+"\n");
-                    statusMessage.append("Content of the Message "+GetStringMessageContent(mqttMessage)+"\n");
+                    statusMessage.append("Message received with id: "+mqttMessage.getId()+"\n");
+                    statusMessage.append("Content of the Message: "+ getStringMessageContent(mqttMessage)+"\n");
 
                     if (logger.isDebugEnabled()) {
                         logger.debug("Received message on topic '" + topicName + "' on broker: " + mqttClientWrapper +
                                 ", message is '" + mqttMessage +
-                                "', payload is '" + GetStringMessageContent(mqttMessage) + "'.");
+                                "', payload is '" + getStringMessageContent(mqttMessage) + "'.");
 
 
                     }
@@ -222,32 +220,26 @@ public class ReceiveActionEngine implements ActionEngine {
      *
      * @return String
      */
-    private static String GetStringMessageContent(MqttMessage mqttmess)
+    private static String getStringMessageContent(final MqttMessage mqttMessage)
     {
-        String decompressedData = null;
+        String decompressedData;
         byte[] buffer = new byte[8192];
         try {
-            ByteArrayInputStream byteStream = new ByteArrayInputStream(mqttmess.getPayload());
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            try {
-                GZIPInputStream zipStream = new GZIPInputStream(byteStream);
-                try {
+            try (ByteArrayInputStream byteStream = new ByteArrayInputStream(mqttMessage.getPayload())) {
+                final ByteArrayOutputStream out = new ByteArrayOutputStream();
+                try (GZIPInputStream zipStream = new GZIPInputStream(byteStream)) {
 
-                    int c = 0;
+                    int c;
                     while ((c = zipStream.read(buffer)) > 0) {
                         out.write(buffer, 0, c);
                     }
-                } finally {
-                    zipStream.close();
                 }
-            } finally {
-                byteStream.close();
+                decompressedData = out.toString("UTF-8");
             }
-            decompressedData = out.toString("UTF-8");
             return decompressedData;
         } catch (Exception e) {
             //----not gzip format then return the string format of the payload------
-            decompressedData=new String(mqttmess.getPayload());
+            decompressedData = new String(mqttMessage.getPayload());
             return decompressedData;
         }
 

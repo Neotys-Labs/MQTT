@@ -27,21 +27,25 @@
  */
 package com.neotys.action.mqtt.publish;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.zip.GZIPOutputStream;
 import com.google.common.base.Optional;
-import com.neotys.action.mqtt.util.MqttClientWrapper;
-import com.neotys.extensions.action.engine.Logger;
-import org.eclipse.paho.client.mqttv3.*;
-
 import com.google.common.base.Strings;
+import com.neotys.action.mqtt.util.MqttClientWrapper;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
 import com.neotys.extensions.action.engine.Context;
+import com.neotys.extensions.action.engine.Logger;
 import com.neotys.extensions.action.engine.SampleResult;
+import org.eclipse.paho.client.mqttv3.MqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.MqttTopic;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.GZIPOutputStream;
 
 import static com.neotys.action.argument.Arguments.getArgumentLogString;
 import static com.neotys.action.argument.Arguments.parseArguments;
@@ -88,16 +92,11 @@ public class PublishActionEngine implements ActionEngine  {
             return sampleResult;
         }
 
-
-
         // QoS ? Look for value using the standard param or the deprecated one
         int QoS = GetQoS(parsedArgs);
 
-
-
-
         try {
-            MqttMessage mqttMessage = new MqttMessage(GetByteMessage(parsedArgs,responseBuilder));
+            MqttMessage mqttMessage = new MqttMessage(getMessageBytes(parsedArgs,logger));
             mqttMessage.setQos(QoS);
             // TODO retained param
             mqttMessage.setRetained(false);
@@ -112,7 +111,7 @@ public class PublishActionEngine implements ActionEngine  {
             sampleResult.setStatusCode(STATUS_CODE_OK);
             appendLineToStringBuilder(responseBuilder,"Published message to topic '" + topicName + "' on broker: " + mqttClientWrapper +
                     ", message is '" + mqttMessage +
-                    "', payload is '" + mqttMessage.getPayload() + "'.");
+                    "', payload is '" + Arrays.toString(mqttMessage.getPayload()) + "'.");
             sampleResult.setResponseContent(responseBuilder.toString());
 
             if (logger.isDebugEnabled()) {
@@ -139,13 +138,10 @@ public class PublishActionEngine implements ActionEngine  {
      *
      * @return boolean specifying if compression of the message ( string) is required
      */
-    private static boolean IsCompressionRequired(Map<String, Optional<String>> parsedArgs) {
-        Optional<String> CompressBool = parsedArgs.get(PublishOption.ParamCompression.getName());
-        if (CompressBool.isPresent() && !Strings.isNullOrEmpty(CompressBool.get())) {
-            if(CompressBool.get().equalsIgnoreCase("true"))
-                return true;
-            else
-                return false;
+    private static boolean isCompressionRequired(final Map<String, Optional<String>> parsedArgs) {
+        final Optional<String> compressionBool = parsedArgs.get(PublishOption.ParamCompression.getName());
+        if (compressionBool.isPresent() && !Strings.isNullOrEmpty(compressionBool.get())) {
+           return compressionBool.get().equalsIgnoreCase("true");
         }
         return false;
     }
@@ -191,26 +187,26 @@ public class PublishActionEngine implements ActionEngine  {
      *
      * @return byte[]
      */
-    public static byte[] getcompressdata(byte[] rawdata) throws IOException {
-        byte[] compresseddata = null;
-        ByteArrayOutputStream bytestream = new ByteArrayOutputStream(rawdata.length);
+    private static byte[] getCompressData(byte[] rawdata) throws IOException {
+        byte[] compressedData = null;
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream(rawdata.length);
         try {
-            GZIPOutputStream zipstream = new GZIPOutputStream(bytestream);
+            GZIPOutputStream zipStream = new GZIPOutputStream(byteStream);
             try {
-                zipstream.write(rawdata);
+                zipStream.write(rawdata);
             } finally {
-                zipstream.finish();
-                zipstream.close();
+                zipStream.finish();
+                zipStream.close();
             }
         } finally {
-            bytestream.close();
+            byteStream.close();
         }
 
-        compresseddata = bytestream.toByteArray();
+        compressedData = byteStream.toByteArray();
 
-
-        return compresseddata;
+        return compressedData;
     }
+
     private static void appendLineToStringBuilder(final StringBuilder sb, final String line){
         sb.append(line).append("\n");
     }
@@ -221,26 +217,24 @@ public class PublishActionEngine implements ActionEngine  {
      *
      * @return byte[]
      */
-    public static byte[] GetByteMessage(Map<String, Optional<String>> parsedArgs,StringBuilder sample)  throws IOException  {
-        byte[] bytemesage = null;
+    private static byte[] getMessageBytes(final Map<String, Optional<String>> parsedArgs, final Logger logger)  throws IOException  {
+        byte[] messageBytes;
         // Message ?
         // TODO Seems that an empty message is acceptable, need to test and check
         String message = "";
-        Optional<String> messageOptional = parsedArgs.get(PublishOption.ParamMessage.getName());
+        final Optional<String> messageOptional = parsedArgs.get(PublishOption.ParamMessage.getName());
         if (messageOptional.isPresent() && !Strings.isNullOrEmpty(messageOptional.get())) {
             message = messageOptional.get();
         }
-        else
-            message="";
 
-        if(IsCompressionRequired(parsedArgs)) {
-            bytemesage = getcompressdata(message.getBytes());
-            appendLineToStringBuilder(sample,"Message Compressed in Gzip :Done ");
+        if (isCompressionRequired(parsedArgs)) {
+            messageBytes = getCompressData(message.getBytes());
+            logger.debug("Message Compressed in Gzip: Done ");
+        } else {
+            messageBytes = message.getBytes();
         }
-        else
-            bytemesage=message.getBytes();
 
-        return bytemesage;
+        return messageBytes;
     }
 
     @Override
