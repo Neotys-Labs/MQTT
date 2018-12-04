@@ -77,7 +77,7 @@ enum ConnectOption implements Option {
 			/* AppearsByDefault */  True,
 			/* Type */              TEXT,
 			/* DefaultValue */      "tcp",
-			/* Description */       "Protocol used to communicate with the MQTT broker. Possible protocols are tcp, ssl or tls.",
+			/* Description */       "Protocol used to communicate with the MQTT broker. Possible protocols are tcp or tls.",
 			/* ArgumentValidator */ PROTOCOL_ARGUMENT_VALIDATOR),
 
 	/**
