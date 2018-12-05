@@ -1,1 +1,0 @@
-If the package or the name of mqttbinder is updated, the content of the file META-INF\services\com.neotys.extensions.codec.AbstractBinder must be updated as well to allow the codec to be loaded in Neoload.
