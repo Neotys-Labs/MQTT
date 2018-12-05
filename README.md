@@ -1,17 +1,19 @@
 # MQTT 
 
-This projects groups the assets that can be used to load test MQTT brokers with [NeoLoad](https://www.neotys.com/neoload/overview).
+This projects groups the Advanced Actions that can be used to load test MQTT brokers with [NeoLoad](https://www.neotys.com/neoload/overview).
 
-* **the MQTT Advanced Actions** - The actions required for MQTT over TCP are bundled in NeoLoad. This Labs version . Supported protocols: 'tcp' and 'tls'.
+The Actions are bundeled with NeoLoad 6.8 and can be downloaded from this repository for previous NeoLoad versions.
 
-## Binaries
+## Stable version vs Experimental
 
-* Download the custom Advanced Actions and the Data Format Extension binaries from the [latest release](https://github.com/Neotys-Labs/MQTT/releases/latest)
+The branch 'master' contains the MQTT actions as bundeled in NeoLoad from version 6.8. 
 
-## Labs version vs NeoLoad version
+### MQTT over websocket
 
-* NeoLoad version supports 'tcp' protocol when the Labs version supports 'tcp', 'tls'
-* Read the documention on the Advanced Actions bundeled with NeoLoad: [MQTT documentation](https://www.neotys.com/documents/doc/neoload/latest/en/html/#23668.htm)
+The branch 'experimental' brings the support for MQTT over Websocket, including recording the MQTT traffic over websocket.
+It is an experimental branch that contains unsupported code.
+
+Learn more in the [experimental branch](https://github.com/Neotys-Labs/MQTT/tree/experimental).
 
 
 
