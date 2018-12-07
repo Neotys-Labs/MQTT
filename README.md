@@ -2,7 +2,7 @@
 
 This projects groups the Advanced Actions that can be used to load test MQTT brokers with [NeoLoad](https://www.neotys.com/neoload/overview).
 
-The Actions are bundeled with NeoLoad 6.8 and the [latest release](https://github.com/Neotys-Labs/MQTT/releases/latest) can be can be downloaded for previous NeoLoad versions.
+The Actions are bundeled with NeoLoad 6.8 and the [latest release](https://github.com/Neotys-Labs/MQTT/releases/latest) can be downloaded for previous NeoLoad versions.
 
 ## Stable version vs Experimental
 
