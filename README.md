@@ -7,6 +7,7 @@ The Actions are bundeled with NeoLoad 6.8 and can be downloaded from this reposi
 ## Stable version vs Experimental
 
 The branch 'master' contains the MQTT actions as bundeled in NeoLoad from version 6.8.
+
 The [latest release](https://github.com/Neotys-Labs/MQTT/releases/latest) can be used for previous version of NeoLoad.
 
 ### MQTT over WebSocket
