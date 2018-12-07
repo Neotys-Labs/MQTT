@@ -8,7 +8,7 @@ The Actions are bundeled with NeoLoad 6.8 and can be downloaded from this reposi
 
 The branch 'master' contains the MQTT actions as bundeled in NeoLoad from version 6.8. 
 
-### MQTT over websocket
+### MQTT over WebSocket
 
 The branch 'experimental' brings the support for MQTT over Websocket, including recording the MQTT traffic over websocket.
 It is an experimental branch that contains unsupported code.
