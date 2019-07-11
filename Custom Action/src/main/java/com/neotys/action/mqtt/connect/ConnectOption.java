@@ -233,6 +233,22 @@ enum ConnectOption implements Option {
 			/* DefaultValue */      "",
 			/* Description */       "Trust all server certificates.",
 			/* ArgumentValidator */ ALWAYS_VALID),
+	ParamClientCleanSession(
+			/* Name */              "CleanSession",
+			/* OptionalRequired */  Optional,
+			/* AppearsByDefault */  False,
+			/* Type */              TEXT,
+			/* DefaultValue */      "true",
+			/* Description */       "Sets the client should remember state across restarts and reconnects.",
+			/* ArgumentValidator */ ALWAYS_VALID),
+	ParamClientKeepAliveInterval(
+			/* Name */              "KeepAliveInterval",
+			/* OptionalRequired */  Optional,
+			/* AppearsByDefault */  False,
+			/* Type */              TEXT,
+			/* DefaultValue */      "30",
+			/* Description */       "Defines the maximum time interval between messages sent or received in seconds.",
+			/* ArgumentValidator */ ALWAYS_VALID),
 	;
 
 

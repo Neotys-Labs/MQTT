@@ -95,9 +95,11 @@ public class ConnectActionEngine implements ActionEngine {
 		// Construct and prepare connect options
 		final MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
 
-		// TODO make these public and configurable
-		mqttConnectOptions.setCleanSession(true);
-		mqttConnectOptions.setKeepAliveInterval(30);
+		final boolean cleanSession = "true".equalsIgnoreCase(getParameter(parsedArgs, ParamClientCleanSession, () -> "true"));
+		mqttConnectOptions.setCleanSession(cleanSession);
+
+		final int keepAliveInterval = parseInt(getParameter(parsedArgs, ParamClientKeepAliveInterval, () -> "30"), 30);
+		mqttConnectOptions.setKeepAliveInterval(keepAliveInterval);
 
 		if (isSecureProtocol(protocol)) {
 			try {
@@ -234,6 +236,14 @@ public class ConnectActionEngine implements ActionEngine {
 
 	private static boolean isFileExists(final String filePath) {
 		return new File(filePath).exists();
+	}
+
+	private int parseInt(String value, int defaultValue) {
+		try {
+			return Integer.parseInt(value);
+		} catch(NumberFormatException nfe) {
+			return defaultValue;
+		}
 	}
 
 	@Override
