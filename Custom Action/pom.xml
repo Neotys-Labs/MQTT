@@ -10,7 +10,7 @@
     <groupId>com.neotys.actions.mqtt</groupId>
     <artifactId>neotys-advanced-action-mqtt</artifactId>
     <name>MQTT actions</name>
-    <version>3.0.1</version>
+    <version>3.0.2-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
