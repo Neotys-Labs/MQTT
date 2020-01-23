@@ -27,10 +27,6 @@
  */
 package com.neotys.action.mqtt.connect;
 
-import com.neotys.action.argument.ArgumentValidator;
-import com.neotys.action.argument.Option;
-import com.neotys.extensions.action.ActionParameter;
-
 import static com.neotys.action.argument.DefaultArgumentValidator.ALWAYS_VALID;
 import static com.neotys.action.argument.DefaultArgumentValidator.POSITIVE_LONG_VALIDATOR;
 import static com.neotys.action.argument.Option.AppearsByDefault.False;
@@ -38,9 +34,19 @@ import static com.neotys.action.argument.Option.AppearsByDefault.True;
 import static com.neotys.action.argument.Option.OptionalRequired.Optional;
 import static com.neotys.action.mqtt.util.MqttArgumentValidator.HOST_ARGUMENT_VALIDATOR;
 import static com.neotys.action.mqtt.util.MqttArgumentValidator.PROTOCOL_ARGUMENT_VALIDATOR;
-import static com.neotys.action.mqtt.util.SharedParameterNames.*;
+import static com.neotys.action.mqtt.util.SharedParameterNames.BrokerAlias;
+import static com.neotys.action.mqtt.util.SharedParameterNames.ClientId;
+import static com.neotys.action.mqtt.util.SharedParameterNames.Host;
+import static com.neotys.action.mqtt.util.SharedParameterNames.Password;
+import static com.neotys.action.mqtt.util.SharedParameterNames.Port;
+import static com.neotys.action.mqtt.util.SharedParameterNames.Protocol;
+import static com.neotys.action.mqtt.util.SharedParameterNames.UserName;
 import static com.neotys.extensions.action.ActionParameter.Type.PASSWORD;
 import static com.neotys.extensions.action.ActionParameter.Type.TEXT;
+
+import com.neotys.action.argument.ArgumentValidator;
+import com.neotys.action.argument.Option;
+import com.neotys.extensions.action.ActionParameter;
 
 /**
  * MQTT broker connection options
@@ -249,6 +255,14 @@ enum ConnectOption implements Option {
 			/* DefaultValue */      "30",
 			/* Description */       "Defines the maximum time interval between messages sent or received in seconds.",
 			/* ArgumentValidator */ ALWAYS_VALID),
+	ParamThreadPoolSize(
+			/* Name */              "ThreadPoolSize",
+			/* OptionalRequired */  Optional,
+			/* AppearsByDefault */  False,
+			/* Type */              TEXT,
+			/* DefaultValue */      "10",
+			/* Description */       "Threads pool size",
+			/* ArgumentValidator */ ALWAYS_VALID)
 	;
 
 
