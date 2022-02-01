@@ -27,6 +27,14 @@
  */
 package com.neotys.action.mqtt.publish;
 
+import static com.neotys.action.argument.Arguments.getArgumentLogString;
+import static com.neotys.action.argument.Arguments.parseArguments;
+import static com.neotys.action.mqtt.util.MqttParameterUtilities.GetAndCheckConnection;
+import static com.neotys.action.mqtt.util.MqttParameterUtilities.STATUS_CODE_ERROR_CONNECTION;
+import static com.neotys.action.mqtt.util.MqttParameterUtilities.STATUS_CODE_INVALID_PARAMETER;
+import static com.neotys.action.mqtt.util.MqttParameterUtilities.setResultAsError;
+import static com.neotys.action.result.ResultFactory.STATUS_CODE_OK;
+
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.neotys.action.mqtt.util.MqttClientWrapper;
@@ -35,22 +43,16 @@ import com.neotys.extensions.action.engine.ActionEngine;
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.Logger;
 import com.neotys.extensions.action.engine.SampleResult;
-import org.eclipse.paho.client.mqttv3.MqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttTopic;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.GZIPOutputStream;
-
-import static com.neotys.action.argument.Arguments.getArgumentLogString;
-import static com.neotys.action.argument.Arguments.parseArguments;
-import static com.neotys.action.mqtt.util.MqttParameterUtilities.*;
-import static com.neotys.action.result.ResultFactory.STATUS_CODE_OK;
+import java.util.zip.DeflaterOutputStream;
+import org.eclipse.paho.client.mqttv3.MqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 /**
  * Publish a message on a topic to an MQTT broker
@@ -73,7 +75,7 @@ public class PublishActionEngine implements ActionEngine  {
 
         if (logger.isDebugEnabled()) {
             logger.debug("Executing " + this.getClass().getName() + " with parameters: "
-                    + getArgumentLogString(parsedArgs, PublishOption.values()));
+                + getArgumentLogString(parsedArgs, PublishOption.values()));
         }
 
         // Get MQTT client wrapper in the User Path context and check that the connection is ok
@@ -110,8 +112,8 @@ public class PublishActionEngine implements ActionEngine  {
 
             sampleResult.setStatusCode(STATUS_CODE_OK);
             appendLineToStringBuilder(responseBuilder,"Published message to topic '" + topicName + "' on broker: " + mqttClientWrapper +
-                    ", message is '" + mqttMessage +
-                    "', payload is '" + Arrays.toString(mqttMessage.getPayload()) + "'.");
+                ", message is '" + mqttMessage +
+                "', payload is '" + Arrays.toString(mqttMessage.getPayload()) + "'.");
             sampleResult.setResponseContent(responseBuilder.toString());
 
             if (logger.isDebugEnabled()) {
@@ -141,7 +143,7 @@ public class PublishActionEngine implements ActionEngine  {
     private static boolean isCompressionRequired(final Map<String, Optional<String>> parsedArgs) {
         final Optional<String> compressionBool = parsedArgs.get(PublishOption.ParamCompression.getName());
         if (compressionBool.isPresent() && !Strings.isNullOrEmpty(compressionBool.get())) {
-           return compressionBool.get().equalsIgnoreCase("true");
+            return compressionBool.get().equalsIgnoreCase("true");
         }
         return false;
     }
@@ -182,7 +184,7 @@ public class PublishActionEngine implements ActionEngine  {
         return Integer.parseInt(PublishOption.ParamQoS.getDefaultValue());
     }
     /**
-     * Compression of the message ? compressing the byte in gzip format
+     * Compression of the message ? compressing the byte in deflate format
      *
      *
      * @return byte[]
@@ -191,7 +193,7 @@ public class PublishActionEngine implements ActionEngine  {
         byte[] compressedData = null;
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream(rawdata.length);
         try {
-            GZIPOutputStream zipStream = new GZIPOutputStream(byteStream);
+            DeflaterOutputStream zipStream = new DeflaterOutputStream(byteStream);
             try {
                 zipStream.write(rawdata);
             } finally {

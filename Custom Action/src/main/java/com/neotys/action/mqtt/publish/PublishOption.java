@@ -198,7 +198,7 @@ enum PublishOption implements Option {
             /* AppearsByDefault */  Hided, // Not officially tested and documented.
             /* Type */              TEXT,
             /* DefaultValue */      "false",
-            /* Description */       "Determine if the message should be compressed in gzip." +
+            /* Description */       "Determine if the message should be compressed in deflate." +
             "Value Possibles are True and False. Default is false.",
             /* ArgumentValidator */ ALWAYS_VALID);
 
