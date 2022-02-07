@@ -76,7 +76,7 @@
     <repositories>
         <repository>
             <id>neotys-apis-releases</id>
-            <url>http://maven.neotys.com/content/groups/public</url>
+            <url>https://maven.neotys.com/content/groups/public/</url>
         </repository>
     </repositories>
     <distributionManagement>
