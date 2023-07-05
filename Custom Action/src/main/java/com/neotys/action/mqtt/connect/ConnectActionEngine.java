@@ -27,34 +27,6 @@
  */
 package com.neotys.action.mqtt.connect;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.neotys.action.argument.Arguments.getArgumentLogString;
-import static com.neotys.action.argument.Arguments.parseArguments;
-import static com.neotys.action.mqtt.connect.ConnectOption.*;
-import static com.neotys.action.mqtt.util.MqttParameterUtilities.NL_MQTT_VU_CONTEXT;
-import static com.neotys.action.mqtt.util.MqttParameterUtilities.STATUS_CODE_ERROR_CONNECTION;
-import static com.neotys.action.mqtt.util.MqttParameterUtilities.STATUS_CODE_INVALID_PARAMETER;
-import static com.neotys.action.mqtt.util.MqttParameterUtilities.extractBrokerURL;
-import static com.neotys.action.mqtt.util.MqttParameterUtilities.setResultAsError;
-import static com.neotys.action.result.ResultFactory.STATUS_CODE_OK;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
-
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
@@ -65,6 +37,23 @@ import com.neotys.extensions.action.engine.ActionEngine;
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.Logger;
 import com.neotys.extensions.action.engine.SampleResult;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.neotys.action.argument.Arguments.getArgumentLogString;
+import static com.neotys.action.argument.Arguments.parseArguments;
+import static com.neotys.action.mqtt.connect.ConnectOption.*;
+import static com.neotys.action.mqtt.util.MqttParameterUtilities.*;
+import static com.neotys.action.result.ResultFactory.STATUS_CODE_OK;
 
 /**
  * Connect to an MQTT broker
