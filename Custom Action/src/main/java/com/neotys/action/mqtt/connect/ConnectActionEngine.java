@@ -51,6 +51,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
 import com.google.common.base.Optional;
@@ -170,7 +172,7 @@ public class ConnectActionEngine implements ActionEngine {
 			} else {
 				final int threadsPoolSize = Integer.parseInt(getParameter(parsedArgs, ParamThreadPoolSize, ()->ParamThreadPoolSize.getDefaultValue()));
 				final ScheduledExecutorService executor = Executors.newScheduledThreadPool(threadsPoolSize);
-				mqttClientWrapper = new MqttClientWrapper(new MqttClient(mqttBrokerURL, clientId, new MqttDefaultFilePersistence(), executor), brokerAlias);
+				mqttClientWrapper = new MqttClientWrapper(new MqttClient(mqttBrokerURL, clientId, new MemoryPersistence(), executor), brokerAlias);
 			}
 
 			// Do the actual connection to the MQTT broker
