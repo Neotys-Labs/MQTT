@@ -141,14 +141,15 @@ public class ConnectActionEngine implements ActionEngine {
 		sampleResult.sampleStart();
 		try {
 			// Peek into the context to check that there isn't already an existing mqttClient for this VU and the specified brokerAlias
-			Map<String, MqttClientWrapper> mqttVUContext = (Map<String, MqttClientWrapper>) context.getCurrentVirtualUser().get(NL_MQTT_VU_CONTEXT);
+			Map<String, Object> mqttVUContext = (Map<String, Object>) context.getCurrentVirtualUser().get(NL_MQTT_VU_CONTEXT);
 
 			// if no mqtt context has been associated to the current UP do it
 			if (mqttVUContext == null) {
 				mqttVUContext = new Hashtable<>();
 				context.getCurrentVirtualUser().put(NL_MQTT_VU_CONTEXT, mqttVUContext);
 			}
-			MqttClientWrapper mqttClientWrapper = mqttVUContext.get(brokerAlias);
+			MqttClientWrapper mqttClientWrapper = (MqttClientWrapper) mqttVUContext.get(brokerAlias);
+			final ScheduledExecutorService executor;
 			if (mqttClientWrapper != null) {
 				if (mqttClientWrapper.isConnected()) {
 					String errorMessage = "Already connected to the MQTT broker: " + mqttClientWrapper;
@@ -158,9 +159,10 @@ public class ConnectActionEngine implements ActionEngine {
 					sampleResult.sampleEnd();
 					return sampleResult;
 				}
+				executor = null;
 			} else {
 				final int threadsPoolSize = Integer.parseInt(getParameter(parsedArgs, ParamThreadPoolSize, ()->ParamThreadPoolSize.getDefaultValue()));
-				final ScheduledExecutorService executor = Executors.newScheduledThreadPool(threadsPoolSize);
+				executor = Executors.newScheduledThreadPool(threadsPoolSize);
 				mqttClientWrapper = new MqttClientWrapper(new MqttClient(mqttBrokerURL, clientId, new MemoryPersistence(), executor), brokerAlias);
 			}
 
@@ -169,7 +171,9 @@ public class ConnectActionEngine implements ActionEngine {
 
 			// Put the new MQTT client in the VU context only if connection succeeds
 			mqttVUContext.put(brokerAlias, mqttClientWrapper);
-
+			if (executor != null) {
+				mqttVUContext.put(mqttClientWrapper.getExecutorAlias(), executor);
+			}
 			// Connection succeeded
 			sampleResult.setStatusCode(STATUS_CODE_OK);
 			sampleResult.setResponseContent("Successfully connected to MQTT broker: " + mqttClientWrapper);

@@ -71,6 +71,10 @@ public class MqttClientWrapper {
         return brokerAlias;
     }
 
+    public String getExecutorAlias() {
+        return brokerAlias + ".executor";
+    }
+
     /**
      * Is the wrapped mqtt client connected?
      * @return true if connected and false otherwise

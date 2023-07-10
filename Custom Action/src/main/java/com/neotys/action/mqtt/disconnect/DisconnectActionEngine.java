@@ -27,23 +27,22 @@
  */
 package com.neotys.action.mqtt.disconnect;
 
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.base.Optional;
 import com.neotys.action.mqtt.util.MqttClientWrapper;
-import com.neotys.extensions.action.engine.Logger;
-
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
 import com.neotys.extensions.action.engine.Context;
+import com.neotys.extensions.action.engine.Logger;
 import com.neotys.extensions.action.engine.SampleResult;
 import org.eclipse.paho.client.mqttv3.MqttException;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 import static com.neotys.action.argument.Arguments.getArgumentLogString;
 import static com.neotys.action.argument.Arguments.parseArguments;
 import static com.neotys.action.mqtt.util.MqttParameterUtilities.*;
-import static com.neotys.action.mqtt.util.MqttParameterUtilities.NL_MQTT_VU_CONTEXT;
 import static com.neotys.action.result.ResultFactory.STATUS_CODE_OK;
 
 public class DisconnectActionEngine implements ActionEngine {
@@ -76,10 +75,15 @@ public class DisconnectActionEngine implements ActionEngine {
 		sampleResult.sampleStart();
 		try {
 			mqttClientWrapper.getMqttClient().disconnect();
+			mqttClientWrapper.getMqttClient().close();
 
 			// get the mqtt context associated to the current VU and remove the associated connection
-			Map<String, MqttClientWrapper> mqttVUContext = (Map<String, MqttClientWrapper>) context.getCurrentVirtualUser().get(NL_MQTT_VU_CONTEXT);
+			Map<String, Object> mqttVUContext = (Map<String, Object>) context.getCurrentVirtualUser().get(NL_MQTT_VU_CONTEXT);
 			mqttVUContext.remove(mqttClientWrapper.getBrokerAlias());
+			final Object executor = mqttVUContext.remove(mqttClientWrapper.getExecutorAlias());
+			if (executor instanceof ExecutorService) {
+				((ExecutorService) executor).shutdown();
+			}
 
             sampleResult.setStatusCode(STATUS_CODE_OK);
             sampleResult.setResponseContent("Successfully disconnected from MQTT broker: " + mqttClientWrapper);
